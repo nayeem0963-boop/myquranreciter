@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { useState } from "react";
 import { useAudioPlayer } from "../context/AudioPlayerContext";
 
 function formatTime(seconds: number): string {
@@ -9,6 +10,7 @@ function formatTime(seconds: number): string {
 }
 
 export default function AudioPlayerBar() {
+  const [areOptionsOpen, setAreOptionsOpen] = useState(false);
   const {
     state,
     currentSurah,
@@ -21,8 +23,14 @@ export default function AudioPlayerBar() {
     setPlaybackRate,
     setVolume,
     toggleRepeat,
+    toggleMute,
+    toggleAbLoop,
+    setAbStartIndex,
+    setAbEndIndex,
+    setRecitationPauseSeconds,
   } = useAudioPlayer();
   const activeVerse = verses[state.ayahIndex];
+  const abEndIndex = state.abEndIndex < 0 ? Math.max(verses.length - 1, 0) : state.abEndIndex;
   const progress = state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
 
   return (
@@ -39,22 +47,38 @@ export default function AudioPlayerBar() {
       </div>
 
       <div className="player-center">
-        <div className="transport-controls">
+        <div className="player-main-row">
+          <div className="transport-controls">
+            <button className="icon-button" type="button" aria-label="Previous verse" onClick={previousVerse}>|◀</button>
+            <button
+              className="play-button"
+              type="button"
+              aria-label={state.isPlaying ? "Pause" : "Play"}
+              onClick={togglePlayback}
+            >{state.isPlaying ? "Ⅱ" : "▶"}</button>
+            <button className="icon-button" type="button" aria-label="Next verse" onClick={nextVerse}>▶|</button>
+          </div>
           <button
-            className={`icon-button repeat-button${state.repeatCurrent ? " enabled" : ""}`}
+            className="mobile-options-toggle"
             type="button"
-            aria-label={state.repeatCurrent ? "Turn off repeat verse" : "Repeat current verse"}
-            aria-pressed={state.repeatCurrent}
+            aria-label="More playback options"
+            aria-expanded={areOptionsOpen}
+            aria-controls="player-options"
+            onClick={() => setAreOptionsOpen((open) => !open)}
+          >•••</button>
+        </div>
+        <div
+          id="player-options"
+          className={`player-options-row${areOptionsOpen ? " expanded" : ""}`}
+        >
+          <button
+            className={`icon-button repeat-button${state.repeatMode !== "off" ? " enabled" : ""}`}
+            type="button"
+            aria-label={`Repeat mode: ${state.repeatMode}. Activate to change repeat mode.`}
+            title={`Repeat ${state.repeatMode}`}
+            aria-pressed={state.repeatMode !== "off"}
             onClick={toggleRepeat}
-          >↻</button>
-          <button className="icon-button" type="button" aria-label="Previous verse" onClick={previousVerse}>|◀</button>
-          <button
-            className="play-button"
-            type="button"
-            aria-label={state.isPlaying ? "Pause" : "Play"}
-            onClick={togglePlayback}
-          >{state.isPlaying ? "Ⅱ" : "▶"}</button>
-          <button className="icon-button" type="button" aria-label="Next verse" onClick={nextVerse}>▶|</button>
+          >↻{state.repeatMode === "verse" ? "¹" : state.repeatMode === "surah" ? "∞" : ""}</button>
           <label className="speed-control">
             <span className="sr-only">Playback speed</span>
             <select
@@ -66,6 +90,61 @@ export default function AudioPlayerBar() {
               <option value="1">1×</option>
               <option value="1.25">1.25×</option>
               <option value="1.5">1.5×</option>
+            </select>
+          </label>
+          <div className="ab-loop-controls" aria-label="A-B range loop controls">
+            <button
+              className={`ab-loop-toggle${state.abLoopEnabled ? " enabled" : ""}`}
+              type="button"
+              aria-label={state.abLoopEnabled ? "Turn off A-B loop" : "Turn on A-B loop"}
+              aria-pressed={state.abLoopEnabled}
+              disabled={verses.length === 0}
+              onClick={toggleAbLoop}
+            >A–B</button>
+            <label>
+              <span>A</span>
+              <select
+                aria-label="Start verse for A-B loop"
+                value={state.abStartIndex}
+                disabled={verses.length === 0}
+                onChange={(event) => setAbStartIndex(Number(event.target.value))}
+              >
+                {verses.map((verse, index) => (
+                  <option key={verse.numberInSurah} value={index}>{verse.numberInSurah}</option>
+                ))}
+              </select>
+            </label>
+            <span aria-hidden="true">→</span>
+            <label>
+              <span>B</span>
+              <select
+                aria-label="End verse for A-B loop"
+                value={abEndIndex}
+                disabled={verses.length === 0}
+                onChange={(event) => setAbEndIndex(Number(event.target.value))}
+              >
+                {verses.map((verse, index) => (
+                  <option key={verse.numberInSurah} value={index}>{verse.numberInSurah}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="recitation-pause-control">
+            <span>Recitation pause</span>
+            <select
+              aria-label="Recitation pause"
+              value={state.recitationPauseSeconds}
+              onChange={(event) => {
+                const seconds = Number(event.target.value);
+                if (seconds === 0 || seconds === 2 || seconds === 4 || seconds === 6) {
+                  setRecitationPauseSeconds(seconds);
+                }
+              }}
+            >
+              <option value="0">None</option>
+              <option value="2">2s</option>
+              <option value="4">4s</option>
+              <option value="6">6s</option>
             </select>
           </label>
         </div>
@@ -87,7 +166,13 @@ export default function AudioPlayerBar() {
       </div>
 
       <label className="volume-control">
-        <span aria-hidden="true">◖</span>
+        <button
+          className={`icon-button mute-button${state.isMuted ? " enabled" : ""}`}
+          type="button"
+          aria-label={state.isMuted ? "Unmute" : "Mute"}
+          aria-pressed={state.isMuted}
+          onClick={toggleMute}
+        >{state.isMuted ? "×" : "◖"}</button>
         <span className="sr-only">Volume</span>
         <input
           type="range"

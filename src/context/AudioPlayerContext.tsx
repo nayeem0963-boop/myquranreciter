@@ -8,9 +8,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Ayah, PlaybackState, Reciter, Surah } from "../types";
+import type { Ayah, PlaybackState, QuranWord, Reciter, Surah } from "../types";
 import { getSampleVerses } from "../services/sampleData";
-import { fetchVerses, getReciters, getVerseAudioUrl } from "../services/quranApi";
+import { fetchVerses, fetchWordsBySurah, getReciters, getVerseAudioUrl } from "../services/quranApi";
 
 interface AudioPlayerValue {
   state: PlaybackState;
@@ -19,7 +19,9 @@ interface AudioPlayerValue {
   currentSurah?: Surah;
   currentReciter: Reciter;
   dataNotice: string;
+  wordDataNotice: string;
   isLoadingVerses: boolean;
+  isLoadingWords: boolean;
   selectSurah: (surahId: number) => void;
   playSurah: (surahId: number) => void;
   playVerse: (surahId: number, ayahIndex: number) => void;
@@ -31,6 +33,11 @@ interface AudioPlayerValue {
   setVolume: (volume: number) => void;
   setReciter: (reciterId: string) => void;
   toggleRepeat: () => void;
+  toggleMute: () => void;
+  toggleAbLoop: () => void;
+  setAbStartIndex: (index: number) => void;
+  setAbEndIndex: (index: number) => void;
+  setRecitationPauseSeconds: (seconds: 0 | 2 | 4 | 6) => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerValue | null>(null);
@@ -42,35 +49,96 @@ interface AudioPlayerProviderProps {
 }
 
 export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPlayerProviderProps) {
-  const [state, setState] = useState<PlaybackState>({
-    surahId: 1,
-    ayahIndex: 0,
-    isPlaying: false,
-    currentTime: 0,
-    duration: 0,
-    playbackRate: 1,
-    volume: 0.8,
-    repeatCurrent: false,
-    currentReciterId: "alafasy",
-  });
-  const [verses, setVerses] = useState<Ayah[]>(getSampleVerses(1));
-  const [isLoadingVerses, setIsLoadingVerses] = useState(true);
-  const [loadedSurahId, setLoadedSurahId] = useState(1);
-  const [dataNotice, setDataNotice] = useState("");
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const pendingAyahIndex = useRef<number | null>(null);
   const reciters = useMemo(() => getReciters(), []);
+  const [state, setState] = useState<PlaybackState>(() => {
+    const initial: PlaybackState = {
+      surahId: 1,
+      ayahIndex: 0,
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+      playbackRate: 1,
+      volume: 0.8,
+      repeatMode: "off",
+      currentReciterId: "alafasy",
+      isMuted: false,
+      abLoopEnabled: false,
+      abStartIndex: 0,
+      abEndIndex: -1,
+      recitationPauseSeconds: 0,
+    };
+    try {
+      const saved = localStorage.getItem("myquranreciter.playback");
+      if (!saved) return initial;
+      const preferences = JSON.parse(saved) as {
+        surahId?: unknown;
+        ayahIndex?: unknown;
+        currentReciterId?: unknown;
+      };
+      return {
+        ...initial,
+        surahId: typeof preferences.surahId === "number" && preferences.surahId >= 1 && preferences.surahId <= 114
+          ? Math.floor(preferences.surahId)
+          : initial.surahId,
+        ayahIndex: typeof preferences.ayahIndex === "number" && preferences.ayahIndex >= 0
+          ? Math.floor(preferences.ayahIndex)
+          : initial.ayahIndex,
+        currentReciterId: typeof preferences.currentReciterId === "string" &&
+          reciters.some((reciter) => reciter.id === preferences.currentReciterId)
+          ? preferences.currentReciterId
+          : initial.currentReciterId,
+      };
+    } catch (error) {
+      console.error("Unable to read saved Quran playback preferences.", error);
+      return initial;
+    }
+  });
+  const [verses, setVerses] = useState<Ayah[]>(() => getSampleVerses(state.surahId));
+  const [wordsByVerse, setWordsByVerse] = useState<Record<number, QuranWord[]>>({});
+  const [isLoadingVerses, setIsLoadingVerses] = useState(true);
+  const [isLoadingWords, setIsLoadingWords] = useState(true);
+  const [loadedSurahId, setLoadedSurahId] = useState(state.surahId);
+  const [dataNotice, setDataNotice] = useState("");
+  const [wordDataNotice, setWordDataNotice] = useState("");
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingAyahIndex = useRef<number | null>(state.ayahIndex);
   const currentReciter = reciters.find((reciter) => reciter.id === state.currentReciterId) ?? reciters[0];
   const currentSurah = surahs.find((surah) => surah.number === state.surahId);
-  const activeVerse = verses[state.ayahIndex];
+  const versesWithWords = useMemo(() => verses.map((verse) => ({
+    ...verse,
+    words: wordsByVerse[verse.numberInSurah] ?? [],
+  })), [verses, wordsByVerse]);
+  const activeVerse = versesWithWords[state.ayahIndex];
   const trackUrl = loadedSurahId === state.surahId && activeVerse
     ? getVerseAudioUrl(currentReciter, state.surahId, activeVerse.numberInSurah)
     : "";
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("myquranreciter.playback", JSON.stringify({
+        surahId: state.surahId,
+        ayahIndex: state.ayahIndex,
+        currentReciterId: state.currentReciterId,
+      }));
+    } catch (error) {
+      console.error("Unable to save Quran playback preferences.", error);
+    }
+  }, [state.surahId, state.ayahIndex, state.currentReciterId]);
 
   const reportDataNotice = useCallback((notice: string) => {
     setDataNotice(notice);
     onDataNotice(notice);
   }, [onDataNotice]);
+
+  const clearPendingPause = useCallback(() => {
+    if (pauseTimerRef.current !== null) {
+      clearTimeout(pauseTimerRef.current);
+      pauseTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => clearPendingPause(), [clearPendingPause]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -89,9 +157,10 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
         setLoadedSurahId(requestedSurahId);
         setIsLoadingVerses(false);
         if (pendingAyahIndex.current !== null) {
+          const requestedAyahIndex = pendingAyahIndex.current;
           setState((current) => ({
             ...current,
-            ayahIndex: Math.min(pendingAyahIndex.current ?? 0, Math.max(result.data.length - 1, 0)),
+            ayahIndex: Math.min(requestedAyahIndex, Math.max(result.data.length - 1, 0)),
           }));
           pendingAyahIndex.current = null;
         }
@@ -106,6 +175,26 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
 
     return () => controller.abort();
   }, [state.surahId, reportDataNotice]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setWordsByVerse({});
+    setWordDataNotice("");
+    setIsLoadingWords(true);
+    fetchWordsBySurah(state.surahId, controller.signal)
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        setWordsByVerse(result);
+        setIsLoadingWords(false);
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setWordsByVerse({});
+        setIsLoadingWords(false);
+        setWordDataNotice(error instanceof Error ? error.message : "Unable to load word-by-word data.");
+      });
+    return () => controller.abort();
+  }, [state.surahId]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -133,7 +222,7 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
 
     let isCurrentEffect = true;
     audio.playbackRate = state.playbackRate;
-    audio.volume = state.volume;
+    audio.volume = state.isMuted ? 0 : state.volume;
 
     if (state.isPlaying && trackUrl) {
       audio.play().catch(() => {
@@ -148,9 +237,10 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     return () => {
       isCurrentEffect = false;
     };
-  }, [trackUrl, state.isPlaying, state.playbackRate, state.volume, reportDataNotice]);
+  }, [trackUrl, state.isPlaying, state.playbackRate, state.volume, state.isMuted, reportDataNotice]);
 
   const switchToSurah = useCallback((surahId: number, ayahIndex: number, shouldPlay: boolean) => {
+    clearPendingPause();
     pendingAyahIndex.current = ayahIndex;
     setState((current) => ({
       ...current,
@@ -159,11 +249,14 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
       isPlaying: shouldPlay,
       currentTime: 0,
       duration: 0,
+      ...(surahId !== state.surahId
+        ? { abLoopEnabled: false, abStartIndex: 0, abEndIndex: -1 }
+        : {}),
     }));
     if (surahId === state.surahId) {
       pendingAyahIndex.current = null;
     }
-  }, [state.surahId]);
+  }, [clearPendingPause, state.surahId]);
 
   const selectSurah = useCallback((surahId: number) => {
     switchToSurah(surahId, 0, false);
@@ -177,38 +270,88 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     switchToSurah(surahId, ayahIndex, true);
   }, [switchToSurah]);
 
-  const moveVerse = useCallback((direction: -1 | 1) => {
+  const moveVerse = useCallback((direction: -1 | 1): boolean => {
     const newIndex = state.ayahIndex + direction;
     if (newIndex >= 0 && newIndex < verses.length) {
       setState((current) => ({ ...current, ayahIndex: newIndex, currentTime: 0, duration: 0 }));
-      return;
+      return true;
     }
 
     const currentSurahIndex = surahs.findIndex((surah) => surah.number === state.surahId);
     const adjacentSurah = surahs[currentSurahIndex + direction];
     if (!adjacentSurah) {
       if (direction === 1) setState((current) => ({ ...current, isPlaying: false }));
-      return;
+      return false;
     }
     const targetIndex = direction === -1 ? adjacentSurah.numberOfAyahs - 1 : 0;
     switchToSurah(adjacentSurah.number, targetIndex, state.isPlaying);
+    return true;
   }, [state.ayahIndex, state.isPlaying, state.surahId, surahs, switchToSurah, verses.length]);
 
   const onEnded = useCallback(() => {
-    if (state.repeatCurrent) {
+    const scheduleTransition = (transition: () => boolean) => {
+      clearPendingPause();
+      if (state.recitationPauseSeconds === 0) {
+        transition();
+        return;
+      }
+
+      setState((current) => ({ ...current, isPlaying: false }));
+      pauseTimerRef.current = setTimeout(() => {
+        pauseTimerRef.current = null;
+        if (transition()) {
+          setState((current) => ({ ...current, isPlaying: true }));
+        }
+      }, state.recitationPauseSeconds * 1000);
+    };
+
+    const abEndIndex = state.abEndIndex < 0 ? verses.length - 1 : state.abEndIndex;
+    if (state.abLoopEnabled && state.ayahIndex >= abEndIndex) {
+      scheduleTransition(() => {
+        setState((current) => ({
+          ...current,
+          ayahIndex: current.abStartIndex,
+          currentTime: 0,
+          duration: 0,
+        }));
+        return true;
+      });
+      return;
+    }
+    if (state.repeatMode === "verse" && !state.abLoopEnabled) {
       const audio = audioRef.current;
       if (audio) {
         audio.currentTime = 0;
-        audio.play().catch(() => setState((current) => ({ ...current, isPlaying: false })));
+        audio.play().catch(() => {
+          setState((current) => ({ ...current, isPlaying: false }));
+          reportDataNotice("Audio could not be played. Check your connection and try again.");
+        });
       }
       return;
     }
-    moveVerse(1);
-  }, [moveVerse, state.repeatCurrent]);
+    if (state.repeatMode === "surah" && state.ayahIndex === verses.length - 1) {
+      scheduleTransition(() => {
+        switchToSurah(state.surahId, 0, true);
+        return true;
+      });
+      return;
+    }
+    scheduleTransition(() => moveVerse(1));
+  }, [
+    clearPendingPause, moveVerse, reportDataNotice, state.abEndIndex, state.abLoopEnabled, state.ayahIndex,
+    state.recitationPauseSeconds, state.repeatMode, state.surahId, switchToSurah, verses.length,
+  ]);
 
   const togglePlayback = useCallback(() => {
+    if (pauseTimerRef.current !== null) {
+      clearPendingPause();
+      const audio = audioRef.current;
+      if (audio) audio.currentTime = 0;
+      setState((current) => ({ ...current, isPlaying: true, currentTime: 0 }));
+      return;
+    }
     setState((current) => ({ ...current, isPlaying: !current.isPlaying }));
-  }, []);
+  }, [clearPendingPause]);
 
   const seek = useCallback((time: number) => {
     const audio = audioRef.current;
@@ -220,39 +363,104 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
   }, []);
 
   const setVolume = useCallback((volume: number) => {
-    setState((current) => ({ ...current, volume }));
+    setState((current) => ({ ...current, volume: Math.max(0, Math.min(1, volume)), isMuted: false }));
   }, []);
 
   const setReciter = useCallback((reciterId: string) => {
     setState((current) => ({ ...current, currentReciterId: reciterId }));
   }, []);
 
-  const toggleRepeat = useCallback(() => {
-    setState((current) => ({ ...current, repeatCurrent: !current.repeatCurrent }));
+  const setRecitationPauseSeconds = useCallback((seconds: 0 | 2 | 4 | 6) => {
+    setState((current) => ({ ...current, recitationPauseSeconds: seconds }));
   }, []);
+
+  const toggleRepeat = useCallback(() => {
+    setState((current) => ({
+      ...current,
+      repeatMode: current.repeatMode === "off" ? "verse" : current.repeatMode === "verse" ? "surah" : "off",
+    }));
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setState((current) => ({ ...current, isMuted: !current.isMuted }));
+  }, []);
+
+  const toggleAbLoop = useCallback(() => {
+    setState((current) => {
+      const enabled = !current.abLoopEnabled;
+      const endIndex = current.abEndIndex < 0 ? verses.length - 1 : current.abEndIndex;
+      const isInRange = current.ayahIndex >= current.abStartIndex && current.ayahIndex <= endIndex;
+      return {
+        ...current,
+        abLoopEnabled: enabled,
+        ...(enabled && !isInRange
+          ? { ayahIndex: current.abStartIndex, currentTime: 0, duration: 0 }
+          : {}),
+      };
+    });
+  }, [verses.length]);
+
+  const setAbStartIndex = useCallback((index: number) => {
+    const maxIndex = Math.max(verses.length - 1, 0);
+    const startIndex = Math.max(0, Math.min(index, maxIndex));
+    setState((current) => ({
+      ...current,
+      abStartIndex: startIndex,
+      abEndIndex: current.abEndIndex >= 0 && current.abEndIndex < startIndex ? startIndex : current.abEndIndex,
+    }));
+  }, [verses.length]);
+
+  const setAbEndIndex = useCallback((index: number) => {
+    const maxIndex = Math.max(verses.length - 1, 0);
+    const endIndex = Math.max(0, Math.min(index, maxIndex));
+    setState((current) => ({
+      ...current,
+      abStartIndex: current.abStartIndex > endIndex ? endIndex : current.abStartIndex,
+      abEndIndex: endIndex,
+    }));
+  }, [verses.length]);
+
+  const nextVerse = useCallback(() => {
+    clearPendingPause();
+    moveVerse(1);
+  }, [clearPendingPause, moveVerse]);
+
+  const previousVerse = useCallback(() => {
+    clearPendingPause();
+    moveVerse(-1);
+  }, [clearPendingPause, moveVerse]);
 
   const value = useMemo<AudioPlayerValue>(() => ({
     state,
     surahs,
-    verses,
+    verses: versesWithWords,
     currentSurah,
     currentReciter,
     dataNotice,
+    wordDataNotice,
     isLoadingVerses,
+    isLoadingWords,
     selectSurah,
     playSurah,
     playVerse,
     togglePlayback,
-    nextVerse: () => moveVerse(1),
-    previousVerse: () => moveVerse(-1),
+    nextVerse,
+    previousVerse,
     seek,
     setPlaybackRate,
     setVolume,
     setReciter,
     toggleRepeat,
+    toggleMute,
+    toggleAbLoop,
+    setAbStartIndex,
+    setAbEndIndex,
+    setRecitationPauseSeconds,
   }), [
-    state, surahs, verses, currentSurah, currentReciter, dataNotice, isLoadingVerses, selectSurah,
-    playSurah, playVerse, togglePlayback, moveVerse, seek, setPlaybackRate, setVolume, setReciter, toggleRepeat,
+    state, surahs, versesWithWords, currentSurah, currentReciter, dataNotice, wordDataNotice,
+    isLoadingVerses, isLoadingWords, selectSurah, playSurah, playVerse, togglePlayback, nextVerse,
+    previousVerse, seek, setPlaybackRate, setVolume, setReciter, toggleRepeat, toggleMute,
+    toggleAbLoop, setAbStartIndex, setAbEndIndex, setRecitationPauseSeconds,
   ]);
 
   return (

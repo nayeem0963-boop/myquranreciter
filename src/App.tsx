@@ -1,12 +1,43 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AudioPlayerBar from "./components/AudioPlayerBar";
 import QuranReader from "./components/QuranReader";
 import ReciterSelector from "./components/ReciterSelector";
 import SurahList from "./components/SurahList";
 import { AudioPlayerProvider, useAudioPlayer } from "./context/AudioPlayerContext";
+import { useBookmarks } from "./hooks/useBookmarks";
+import { usePWAInstall } from "./hooks/usePWAInstall";
+import { useReadingPreferences } from "./hooks/useReadingPreferences";
 import { fetchSurahs, getReciters } from "./services/quranApi";
 import { SAMPLE_SURAHS } from "./services/sampleData";
-import type { Surah } from "./types";
+import type { Ayah, Bookmark, Surah } from "./types";
+
+interface SavedPosition {
+  surahId: number;
+  ayahIndex: number;
+}
+
+function readSavedPosition(): SavedPosition | null {
+  try {
+    const saved = localStorage.getItem("myquranreciter.playback");
+    if (!saved) return null;
+    const position = JSON.parse(saved) as { surahId?: unknown; ayahIndex?: unknown };
+    if (
+      typeof position.surahId === "number" &&
+      Number.isInteger(position.surahId) &&
+      position.surahId >= 1 &&
+      position.surahId <= 114 &&
+      typeof position.ayahIndex === "number" &&
+      Number.isInteger(position.ayahIndex) &&
+      position.ayahIndex >= 0
+    ) {
+      return { surahId: position.surahId, ayahIndex: position.ayahIndex };
+    }
+    return null;
+  } catch (error) {
+    console.error("Unable to read the last Quran reading position.", error);
+    return null;
+  }
+}
 
 function QuranApp() {
   const [surahs, setSurahs] = useState<Surah[]>(SAMPLE_SURAHS);
@@ -49,40 +80,154 @@ interface AppContentsProps {
 }
 
 function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
+  const readingPreferences = useReadingPreferences();
+  const { bookmarks, toggleBookmark, removeBookmark } = useBookmarks();
+  const { isInstallable, isIOSSafari, isStandalone, install, installError } = usePWAInstall();
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [showIOSInstallHelp, setShowIOSInstallHelp] = useState(false);
+  const [resumePosition] = useState(readSavedPosition);
+  const [showResumeBanner, setShowResumeBanner] = useState(Boolean(resumePosition));
+  const libraryToggleRef = useRef<HTMLButtonElement>(null);
+  const installButtonRef = useRef<HTMLButtonElement>(null);
+  const installHelpCloseRef = useRef<HTMLButtonElement>(null);
   const {
     state,
     surahs,
     verses,
     currentSurah,
     isLoadingVerses,
+    isLoadingWords,
+    wordDataNotice,
     selectSurah,
     playSurah,
     playVerse,
     setReciter,
+    togglePlayback,
+    previousVerse,
+    nextVerse,
+    toggleMute,
   } = useAudioPlayer();
+
+  const toggleVerseBookmark = useCallback((verse: Ayah) => {
+    if (!currentSurah) return;
+    toggleBookmark({
+      surahId: currentSurah.number,
+      verseNumber: verse.numberInSurah,
+      surahTitle: currentSurah.nameTransliteration,
+      snippet: (verse.translation || verse.text).slice(0, 140),
+    });
+  }, [currentSurah, toggleBookmark]);
+
+  const closeLibrary = useCallback(() => {
+    setIsLibraryOpen(false);
+    window.requestAnimationFrame(() => libraryToggleRef.current?.focus());
+  }, []);
+
+  const selectBookmark = useCallback((bookmark: Bookmark) => {
+    playVerse(bookmark.surahId, bookmark.verseNumber - 1);
+    closeLibrary();
+  }, [closeLibrary, playVerse]);
+
+  const closeIOSInstallHelp = useCallback(() => {
+    setShowIOSInstallHelp(false);
+    window.requestAnimationFrame(() => installButtonRef.current?.focus());
+  }, []);
+
+  const handleInstallClick = useCallback(async () => {
+    if (isInstallable) {
+      await install();
+      return;
+    }
+    setShowIOSInstallHelp(true);
+  }, [install, isInstallable]);
+
+  const handleSelectSurah = useCallback((surahId: number) => {
+    selectSurah(surahId);
+    closeLibrary();
+  }, [closeLibrary, selectSurah]);
+
+  useEffect(() => {
+    if (showIOSInstallHelp) installHelpCloseRef.current?.focus();
+  }, [showIOSInstallHelp]);
+
+  useEffect(() => {
+    const closeDrawerOnDesktop = () => {
+      if (window.matchMedia("(min-width: 768px)").matches) setIsLibraryOpen(false);
+    };
+    window.addEventListener("resize", closeDrawerOnDesktop);
+    return () => window.removeEventListener("resize", closeDrawerOnDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (isLibraryOpen) document.body.classList.add("mobile-drawer-open");
+    else document.body.classList.remove("mobile-drawer-open");
+    return () => document.body.classList.remove("mobile-drawer-open");
+  }, [isLibraryOpen]);
+
+  useEffect(() => {
+    if (!isLibraryOpen && !showIOSInstallHelp) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (isLibraryOpen) closeLibrary();
+      if (showIOSInstallHelp) closeIOSInstallHelp();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [closeIOSInstallHelp, closeLibrary, isLibraryOpen, showIOSInstallHelp]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.code !== "Space" || event.repeat) return;
       const target = event.target as HTMLElement | null;
-      if (target?.isContentEditable || target?.matches("input, textarea, select, button")) return;
-      event.preventDefault();
-      const playButton = document.querySelector<HTMLButtonElement>(".player-bar .play-button");
-      playButton?.click();
+      if (event.repeat || target?.isContentEditable ||
+        target?.matches("input, textarea, select, [contenteditable='true']")) return;
+      if (event.code === "Space") {
+        if (target?.matches("button, a")) return;
+        event.preventDefault();
+        togglePlayback();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousVerse();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        nextVerse();
+      } else if (event.key.toLowerCase() === "m") {
+        toggleMute();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [nextVerse, previousVerse, toggleMute, togglePlayback]);
 
   return (
     <div className="app-shell" dir="ltr">
       <header className="site-header">
+        <button
+          ref={libraryToggleRef}
+          className="mobile-library-toggle"
+          type="button"
+          aria-label={isLibraryOpen ? "Close Surah library" : "Open Surah library"}
+          aria-expanded={isLibraryOpen}
+          aria-controls="surah-library"
+          onClick={() => setIsLibraryOpen((open) => !open)}
+        >☰</button>
         <a className="brand" href="#" aria-label="My Quran Reciter home">
           <span className="brand-mark" aria-hidden="true">۞</span>
           <span>my<span className="brand-accent">quran</span>reciter</span>
         </a>
         <div className="header-actions">
           <span className="header-caption">A little space for reflection</span>
+          {!isStandalone && (isInstallable || isIOSSafari) && (
+            <button
+              ref={installButtonRef}
+              className="install-app-button"
+              type="button"
+              aria-label="Install App"
+              onClick={() => void handleInstallClick()}
+            >
+              <span aria-hidden="true">↓</span>
+              <span className="install-button-label">Install App</span>
+            </button>
+          )}
           <ReciterSelector
             reciters={getReciters()}
             selectedReciterId={state.currentReciterId}
@@ -91,8 +236,68 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
         </div>
       </header>
 
+      {installError && <p className="install-error" role="status">{installError}</p>}
+
+      {showIOSInstallHelp && (
+        <div className="install-help-backdrop" onClick={closeIOSInstallHelp}>
+          <section
+            className="install-help-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="install-help-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              ref={installHelpCloseRef}
+              className="install-help-close"
+              type="button"
+              aria-label="Close install instructions"
+              onClick={closeIOSInstallHelp}
+            >×</button>
+            <p className="eyebrow">KEEP IT CLOSE</p>
+            <h2 id="install-help-title">Add to your Home Screen</h2>
+            <ol>
+              <li>Tap the <strong>Share</strong> button in Safari.</li>
+              <li>Choose <strong>Add to Home Screen</strong>, then tap Add.</li>
+            </ol>
+          </section>
+        </div>
+      )}
+
+      {showResumeBanner && resumePosition && (
+        <div className="resume-banner" role="status">
+          <span>
+            Pick up where you left off: <strong>{surahs.find((surah) => surah.number === resumePosition.surahId)?.nameTransliteration ?? `Surah ${resumePosition.surahId}`}</strong>
+            {" "}· Verse {resumePosition.ayahIndex + 1}
+          </span>
+          <button
+            type="button"
+            className="resume-action"
+            onClick={() => {
+              playVerse(resumePosition.surahId, resumePosition.ayahIndex);
+              setShowResumeBanner(false);
+            }}
+          >Resume reading</button>
+          <button
+            type="button"
+            className="resume-dismiss"
+            aria-label="Dismiss resume banner"
+            onClick={() => setShowResumeBanner(false)}
+          >×</button>
+        </div>
+      )}
+
       <main className="workspace">
-        <SurahList surahs={surahs} selectedSurahId={state.surahId} onSelect={selectSurah} />
+        <SurahList
+          surahs={surahs}
+          selectedSurahId={state.surahId}
+          onSelect={handleSelectSurah}
+          bookmarks={bookmarks}
+          onSelectBookmark={selectBookmark}
+          onRemoveBookmark={removeBookmark}
+          isOpen={isLibraryOpen}
+          onClose={closeLibrary}
+        />
         <div className="reader-column">
           {dataNotice && (
             <p className="data-notice" role="status">
@@ -108,12 +313,24 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             isLoading={isLoadingVerses}
             onPlaySurah={() => playSurah(state.surahId)}
             onPlayVerse={(index) => playVerse(state.surahId, index)}
+            arabicFontSize={readingPreferences.arabicFontSize}
+            showTranslation={readingPreferences.showTranslation}
+            showTransliteration={readingPreferences.showTransliteration}
+            theme={readingPreferences.theme}
+            onArabicFontSizeChange={readingPreferences.setArabicFontSize}
+            onToggleTranslation={readingPreferences.toggleTranslation}
+            onToggleTransliteration={readingPreferences.toggleTransliteration}
+            onThemeChange={readingPreferences.setTheme}
+            bookmarks={bookmarks}
+            onToggleBookmark={toggleVerseBookmark}
+            isLoadingWords={isLoadingWords}
+            wordDataNotice={wordDataNotice}
           />
         </div>
       </main>
 
       <AudioPlayerBar />
-      <p className="keyboard-hint"><kbd>Space</kbd> play or pause</p>
+      <p className="keyboard-hint"><kbd>Space</kbd> play · <kbd>←</kbd>/<kbd>→</kbd> verse · <kbd>M</kbd> mute</p>
     </div>
   );
 }

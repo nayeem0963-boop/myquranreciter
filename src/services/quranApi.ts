@@ -1,8 +1,11 @@
 import { getSampleVerses, RECITERS, SAMPLE_SURAHS } from "./sampleData";
-import type { Ayah, Reciter, Surah } from "../types";
+import type { Ayah, QuranWord, Reciter, Surah, Tafsir } from "../types";
 
 const API_BASE = "https://api.alquran.cloud/v1";
+const QURAN_COM_API_BASE = "https://api.quran.com/api/v4";
 const REQUEST_TIMEOUT_MS = 6000;
+const SEARCH_TIMEOUT_MS = 20000;
+const WORD_REQUEST_TIMEOUT_MS = 20000;
 
 export interface DataResult<T> {
   data: T;
@@ -31,8 +34,36 @@ interface CloudEdition {
   }>;
 }
 
-async function request<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+interface CloudQuran {
+  surahs: Array<{
+    number: number;
+    ayahs: Array<{ text: string }>;
+  }>;
+}
+
+interface QuranComTafsirResponse {
+  tafsir?: {
+    text?: string;
+    resource_name?: string;
+  };
+}
+
+interface QuranComChapterWordsResponse {
+  verses?: Array<{
+    verse_number: number;
+    words?: Array<{
+      position: number;
+      char_type_name: string;
+      text_uthmani?: string;
+      text?: string;
+      translation?: { text?: string };
+      transliteration?: { text?: string | null };
+    }>;
+  }>;
+}
+
+async function request<T>(url: string, signal?: AbortSignal, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T> {
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
   const response = await fetch(url, {
     signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
   });
@@ -44,6 +75,97 @@ async function request<T>(url: string, signal?: AbortSignal): Promise<T> {
     throw new Error("The Quran data service returned an error.");
   }
   return result.data;
+}
+
+export async function fetchTranslationSearchIndex(signal?: AbortSignal): Promise<DataResult<Record<number, string>>> {
+  try {
+    const quran = await request<CloudQuran>(`${API_BASE}/quran/en.asad`, signal, SEARCH_TIMEOUT_MS);
+    return {
+      source: "api",
+      data: Object.fromEntries(quran.surahs.map((surah) => [
+        surah.number,
+        surah.ayahs.map((ayah) => ayah.text).join(" "),
+      ])),
+    };
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    const sampleTranslations = Object.fromEntries(SAMPLE_SURAHS.map((surah) => [
+      surah.number,
+      getSampleVerses(surah.number).map((ayah) => ayah.translation).join(" "),
+    ]));
+    return {
+      data: sampleTranslations,
+      source: "sample",
+      notice: "Translation search is limited to bundled sample chapters while offline.",
+    };
+  }
+}
+
+function tafsirHtmlToText(html: string): string {
+  const withParagraphBreaks = html
+    .replace(/<\/(h[1-6]|p|li|blockquote)>/gi, "\n\n")
+    .replace(/<br\s*\/?>/gi, "\n");
+  const parsed = new DOMParser().parseFromString(withParagraphBreaks, "text/html");
+  return (parsed.body.textContent ?? "")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export async function fetchTafsir(surahNumber: number, ayahNumber: number, signal?: AbortSignal): Promise<Tafsir> {
+  const response = await fetch(
+    `${QURAN_COM_API_BASE}/tafsirs/169/by_ayah/${surahNumber}:${ayahNumber}`,
+    {
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)])
+        : AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`Tafsir request failed (${response.status}).`);
+  }
+  const result = await response.json() as QuranComTafsirResponse;
+  if (!result.tafsir?.text) {
+    throw new Error("The Tafsir service returned no commentary for this verse.");
+  }
+  return {
+    text: tafsirHtmlToText(result.tafsir.text),
+    sourceName: result.tafsir.resource_name ?? "Ibn Kathir (Abridged)",
+  };
+}
+
+export async function fetchWordsBySurah(
+  surahNumber: number,
+  signal?: AbortSignal,
+): Promise<Record<number, QuranWord[]>> {
+  const response = await fetch(
+    `${QURAN_COM_API_BASE}/verses/by_chapter/${surahNumber}?words=true&word_fields=text_uthmani,translation,transliteration&per_page=300`,
+    {
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(WORD_REQUEST_TIMEOUT_MS)])
+        : AbortSignal.timeout(WORD_REQUEST_TIMEOUT_MS),
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`Word-by-word data request failed (${response.status}).`);
+  }
+  const result = await response.json() as QuranComChapterWordsResponse;
+  if (!Array.isArray(result.verses)) {
+    throw new Error("The Quran service returned no word-by-word data.");
+  }
+  return Object.fromEntries(result.verses.map((verse) => [
+    verse.verse_number,
+    (verse.words ?? [])
+      .filter((word) => word.char_type_name === "word")
+      .map((word) => ({
+        position: word.position,
+        text: word.text_uthmani ?? word.text ?? "",
+        translation: word.translation?.text ?? "",
+        transliteration: word.transliteration?.text ?? "",
+      }))
+      .filter((word) => word.text.length > 0),
+  ]));
 }
 
 export async function fetchSurahs(signal?: AbortSignal): Promise<DataResult<Surah[]>> {
@@ -73,10 +195,10 @@ export async function fetchSurahs(signal?: AbortSignal): Promise<DataResult<Sura
 export async function fetchVerses(surahId: number, signal?: AbortSignal): Promise<DataResult<Ayah[]>> {
   try {
     const editions = await request<CloudEdition[]>(
-      `${API_BASE}/surah/${surahId}/editions/quran-uthmani,en.asad`,
+      `${API_BASE}/surah/${surahId}/editions/quran-uthmani,en.asad,en.transliteration`,
       signal,
     );
-    const [arabic, translation] = editions;
+    const [arabic, translation, transliteration] = editions;
     if (!arabic || !translation || arabic.ayahs.length !== translation.ayahs.length) {
       throw new Error("The Quran data service returned an incomplete chapter.");
     }
@@ -86,6 +208,7 @@ export async function fetchVerses(surahId: number, signal?: AbortSignal): Promis
         numberInSurah: ayah.numberInSurah,
         text: ayah.text,
         translation: translation.ayahs[index].text,
+        transliteration: transliteration?.ayahs[index]?.text,
       })),
     };
   } catch (error) {
