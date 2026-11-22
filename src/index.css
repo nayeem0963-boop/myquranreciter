@@ -52,14 +52,14 @@
 
 .bookmark-content strong {
   color: #3a4b40;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .bookmark-content span {
   display: -webkit-box;
   overflow: hidden;
   color: #879188;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -98,7 +98,7 @@
   border-radius: 10px;
   color: #718074;
   background: #f3f7f1;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .resume-banner span {
@@ -116,7 +116,7 @@
   border-radius: 7px;
   color: var(--green);
   background: #fff;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -185,7 +185,7 @@ body {
   background: #fff;
   box-shadow: 0 5px 16px rgba(33, 54, 41, 0.12);
   font-family: "DM Sans", sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.4;
   text-align: center;
   white-space: normal;
@@ -195,7 +195,7 @@ body {
 .word-data-notice {
   margin: 9px 0 0;
   color: #879188;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 button,
@@ -297,7 +297,7 @@ a:focus-visible {
   border-radius: 9px;
   color: var(--green);
   background: #fff;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -316,7 +316,7 @@ a:focus-visible {
   width: min(1240px, calc(100% - 48px));
   margin: 8px auto 0;
   color: #9d5a50;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .install-help-backdrop {
@@ -448,7 +448,7 @@ a:focus-visible {
 .eyebrow {
   margin: 0 0 6px;
   color: #9aa39b;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
 }
@@ -475,7 +475,7 @@ a:focus-visible {
   border-radius: 7px;
   color: #7d8980;
   background: transparent;
-  font-size: 10px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -489,7 +489,7 @@ a:focus-visible {
 .library-tabs button span {
   margin-left: 3px;
   color: #9aa49c;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .count-pill {
@@ -499,7 +499,7 @@ a:focus-visible {
   color: var(--green);
   background: #eef5ef;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -527,7 +527,7 @@ a:focus-visible {
   outline: 0;
   background: transparent;
   color: #34443b;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .surah-list {
@@ -571,7 +571,7 @@ a:focus-visible {
   border: 1px solid #e8ede7;
   border-radius: 9px;
   color: #748078;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .selected .surah-number {
@@ -598,7 +598,7 @@ a:focus-visible {
 .surah-meta {
   overflow: hidden;
   color: #929a94;
-  font-size: 9px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -616,13 +616,13 @@ a:focus-visible {
   padding-top: 13px;
   border-top: 1px solid #f0f2ed;
   color: #969e97;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .translation-search-notice {
   margin: 8px 2px 0;
   color: #8a948c;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -640,7 +640,7 @@ a:focus-visible {
   border-radius: 10px;
   color: #706849;
   background: #fbf8ed;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -663,7 +663,7 @@ a:focus-visible {
   border-radius: 20px;
   color: #77877b;
   background: #f3f6f2;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .surah-cover {
@@ -698,7 +698,7 @@ a:focus-visible {
 .cover-meaning {
   margin: 4px 0 13px;
   color: #839087;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .listen-surah-button {
@@ -707,7 +707,7 @@ a:focus-visible {
   border-radius: 8px;
   color: #fff;
   background: var(--green);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 140ms ease, transform 140ms ease;
@@ -716,11 +716,6 @@ a:focus-visible {
 .listen-surah-button:hover {
   background: var(--green-dark);
   transform: translateY(-1px);
-}
-
-.listen-surah-button span {
-  margin-right: 5px;
-  font-size: 9px;
 }
 
 .bismillah {
@@ -784,7 +779,7 @@ a:focus-visible {
   border-radius: 50%;
   color: #678071;
   background: #fff;
-  font-size: 9px;
+  font-size: 12px;
   padding: 0;
   cursor: pointer;
 }
@@ -805,7 +800,7 @@ a:focus-visible {
 
 .verse-play {
   color: #8a9b8e;
-  font-size: 11px;
+  font-size: 12px;
   opacity: 0;
   transition: opacity 140ms ease;
 }
@@ -856,7 +851,7 @@ a:focus-visible {
 .verse-transliteration {
   display: block;
   color: #929078;
-  font-size: 11px;
+  font-size: 12px;
   font-style: italic;
   line-height: 1.6;
 }
@@ -976,7 +971,7 @@ a:focus-visible {
   border-radius: 7px;
   color: #8a978d;
   background: transparent;
-  font-size: 9px;
+  font-size: 12px;
   cursor: pointer;
   opacity: 0;
   transition: opacity 140ms ease, color 140ms ease, background-color 140ms ease;
@@ -1082,7 +1077,7 @@ a:focus-visible {
   margin-top: auto;
   padding-top: 20px;
   color: #929a94;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .tafsir-status,
@@ -1098,7 +1093,7 @@ a:focus-visible {
   border-radius: 7px;
   color: var(--green);
   background: #f4f8f4;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -1162,12 +1157,12 @@ a:focus-visible {
 
 .now-playing-copy strong {
   color: #34463a;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .now-playing-copy span {
   color: #929a93;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .player-center {
@@ -1240,7 +1235,7 @@ a:focus-visible {
   border: 0;
   color: #78837b;
   background: transparent;
-  font-size: 9px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -1249,7 +1244,7 @@ a:focus-visible {
   align-items: center;
   gap: 8px;
   color: #929a94;
-  font-size: 8px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1300,7 +1295,7 @@ a:focus-visible {
   bottom: 95px;
   margin: 0;
   color: #a0a9a1;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 kbd {
@@ -1391,7 +1386,7 @@ kbd {
     width: min(100% - 28px, 520px);
     gap: 7px;
     margin-top: 12px;
-    font-size: 9px;
+    font-size: 12px;
   }
 
   .resume-action {
@@ -1467,7 +1462,7 @@ kbd {
   }
 
   .verse-translation {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .player-bar {
@@ -2690,6 +2685,102 @@ body.sheet-open {
     bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
     padding-bottom: 8px;
   }
+}
+
+/* ==========================================================================
+   Polish: icons, readable type, press feedback
+   ========================================================================== */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.listen-surah-button,
+.pill-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.listen-surah-button {
+  gap: 8px;
+  font-size: 14px;
+}
+
+.icon-button svg,
+.play-button svg,
+.verse-play svg,
+.bookmark-toggle svg,
+.full-player-skip svg,
+.full-player-play svg,
+.mobile-options-toggle svg {
+  display: block;
+}
+
+/* Play glyphs are optically off-centre; nudge the triangle. */
+.play-button svg,
+.full-player-play svg {
+  margin-left: 1px;
+}
+
+.verse-translation {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.verse-transliteration {
+  font-size: 13px;
+}
+
+.icon-button,
+.play-button,
+.verse-play,
+.bookmark-toggle,
+.tafsir-trigger,
+.verse-marker,
+.bottom-nav-item,
+.pill-button,
+.segment,
+.listen-surah-button,
+.full-player-skip,
+.full-player-play,
+.display-settings-button,
+.mobile-options-toggle,
+.install-app-button,
+.sheet-close,
+.drawer-close-button {
+  transition: transform 120ms ease, background-color 140ms ease, color 140ms ease, opacity 140ms ease;
+}
+
+.icon-button:active,
+.play-button:active,
+.verse-play:active,
+.bookmark-toggle:active,
+.tafsir-trigger:active,
+.verse-marker:active,
+.bottom-nav-item:active,
+.pill-button:active,
+.segment:active,
+.listen-surah-button:active,
+.full-player-skip:active,
+.full-player-play:active,
+.display-settings-button:active,
+.mobile-options-toggle:active,
+.install-app-button:active,
+.sheet-close:active,
+.drawer-close-button:active {
+  transform: scale(0.94);
+}
+
+.surah-row:active,
+.switch-row:active,
+.bookmark-content:active,
+.verse-card-row:active:not(.active) {
+  background: #e6f0e8;
+}
+
+.bookmark-toggle.bookmarked svg {
+  filter: drop-shadow(0 0 0.5px currentColor);
 }
 
 @media (prefers-reduced-motion: reduce) {

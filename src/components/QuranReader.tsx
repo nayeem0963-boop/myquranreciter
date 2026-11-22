@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Ayah, Bookmark, Surah } from "../types";
 import type { ReadingTheme } from "../hooks/useReadingPreferences";
+import { PauseIcon, PlayIcon, StarIcon } from "./Icons";
 import TafsirDrawer from "./TafsirDrawer";
 
 interface QuranReaderProps {
@@ -67,7 +68,7 @@ export default function QuranReader({
         </div>
         <p className="cover-arabic" lang="ar" dir="rtl">{surah.nameArabic}</p>
         <button className="listen-surah-button" type="button" onClick={onPlaySurah}>
-          <span aria-hidden="true">▶</span> Listen
+          <PlayIcon size={16} /> Listen
         </button>
       </div>
       {surah.number !== 1 && surah.number !== 9 && (
@@ -100,7 +101,7 @@ export default function QuranReader({
                   aria-label={activeVerseIndex === index && isPlaying ? "Currently playing" : `Play verse ${verse.numberInSurah}`}
                   onClick={() => onPlayVerse(index)}
                 >
-                  {activeVerseIndex === index && isPlaying ? "Ⅱ" : "▶"}
+                  {activeVerseIndex === index && isPlaying ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
                 </button>
                 <button
                   className={`bookmark-toggle${bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`) ? " bookmarked" : ""}`}
@@ -110,7 +111,7 @@ export default function QuranReader({
                     : `Bookmark verse ${verse.numberInSurah}`}
                   aria-pressed={bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`)}
                   onClick={() => onToggleBookmark(verse)}
-                >{bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`) ? "★" : "☆"}</button>
+                ><StarIcon size={22} active={bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`)} /></button>
                 <button
                   className="tafsir-trigger"
                   type="button"

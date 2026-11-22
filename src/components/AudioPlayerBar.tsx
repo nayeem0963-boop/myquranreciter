@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { useRef, useState } from "react";
 import { useAudioPlayer } from "../context/AudioPlayerContext";
 import { formatTime } from "../utils/formatTime";
+import { MoreIcon, MuteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon, VolumeIcon } from "./Icons";
 import FullPlayerSheet from "./FullPlayerSheet";
 import PlaybackOptionsSheet from "./PlaybackOptionsSheet";
 
@@ -49,14 +50,14 @@ export default function AudioPlayerBar() {
       <div className="player-center">
         <div className="player-main-row">
           <div className="transport-controls">
-            <button className="icon-button" type="button" aria-label="Previous verse" onClick={previousVerse}>|◀</button>
+            <button className="icon-button" type="button" aria-label="Previous verse" onClick={previousVerse}><PrevIcon size={18} /></button>
             <button
               className="play-button"
               type="button"
               aria-label={state.isPlaying ? "Pause" : "Play"}
               onClick={togglePlayback}
-            >{state.isPlaying ? "Ⅱ" : "▶"}</button>
-            <button className="icon-button" type="button" aria-label="Next verse" onClick={nextVerse}>▶|</button>
+            >{state.isPlaying ? <PauseIcon size={20} /> : <PlayIcon size={20} />}</button>
+            <button className="icon-button" type="button" aria-label="Next verse" onClick={nextVerse}><NextIcon size={18} /></button>
           </div>
           <button
             ref={optionsToggleRef}
@@ -67,7 +68,7 @@ export default function AudioPlayerBar() {
             aria-expanded={areOptionsOpen}
             aria-controls="playback-options"
             onClick={() => setAreOptionsOpen(true)}
-          >•••</button>
+          ><MoreIcon size={20} /></button>
         </div>
         <div className="progress-row">
           <span>{formatTime(state.currentTime)}</span>
@@ -93,7 +94,7 @@ export default function AudioPlayerBar() {
           aria-label={state.isMuted ? "Unmute" : "Mute"}
           aria-pressed={state.isMuted}
           onClick={toggleMute}
-        >{state.isMuted ? "×" : "◖"}</button>
+        >{state.isMuted ? <MuteIcon size={20} /> : <VolumeIcon size={20} />}</button>
         <span className="sr-only">Volume</span>
         <input
           type="range"

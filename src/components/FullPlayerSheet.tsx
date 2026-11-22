@@ -1,6 +1,7 @@
 import type { CSSProperties, RefObject } from "react";
 import { useAudioPlayer } from "../context/AudioPlayerContext";
 import { formatTime } from "../utils/formatTime";
+import { NextIcon, PauseIcon, PlayIcon, PrevIcon, RepeatIcon } from "./Icons";
 import Sheet from "./Sheet";
 
 interface FullPlayerSheetProps {
@@ -59,15 +60,15 @@ export default function FullPlayerSheet({ open, onClose, onOpenOptions, returnFo
             type="button"
             aria-label={`Repeat mode: ${repeatLabel}. Activate to change.`}
             onClick={toggleRepeat}
-          >↻ {repeatLabel}</button>
-          <button className="full-player-skip" type="button" aria-label="Previous verse" onClick={previousVerse}>|◀</button>
+          ><RepeatIcon size={16} /> {repeatLabel}</button>
+          <button className="full-player-skip" type="button" aria-label="Previous verse" onClick={previousVerse}><PrevIcon size={20} /></button>
           <button
             className="full-player-play"
             type="button"
             aria-label={state.isPlaying ? "Pause" : "Play"}
             onClick={togglePlayback}
-          >{state.isPlaying ? "Ⅱ" : "▶"}</button>
-          <button className="full-player-skip" type="button" aria-label="Next verse" onClick={nextVerse}>▶|</button>
+          >{state.isPlaying ? <PauseIcon size={28} /> : <PlayIcon size={28} />}</button>
+          <button className="full-player-skip" type="button" aria-label="Next verse" onClick={nextVerse}><NextIcon size={20} /></button>
           <button className="pill-button" type="button" aria-haspopup="dialog" onClick={onOpenOptions}>More</button>
         </div>
       </div>
