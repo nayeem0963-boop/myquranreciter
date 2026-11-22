@@ -1,18 +1,15 @@
 import type { CSSProperties } from "react";
 import { useRef, useState } from "react";
 import { useAudioPlayer } from "../context/AudioPlayerContext";
+import { formatTime } from "../utils/formatTime";
+import FullPlayerSheet from "./FullPlayerSheet";
 import PlaybackOptionsSheet from "./PlaybackOptionsSheet";
-
-function formatTime(seconds: number): string {
-  if (!Number.isFinite(seconds)) return "0:00";
-  const minutes = Math.floor(seconds / 60);
-  const remainder = Math.floor(seconds % 60).toString().padStart(2, "0");
-  return `${minutes}:${remainder}`;
-}
 
 export default function AudioPlayerBar() {
   const [areOptionsOpen, setAreOptionsOpen] = useState(false);
+  const [isFullOpen, setIsFullOpen] = useState(false);
   const optionsToggleRef = useRef<HTMLButtonElement>(null);
+  const nowPlayingRef = useRef<HTMLButtonElement>(null);
   const {
     state,
     currentSurah,
@@ -30,7 +27,15 @@ export default function AudioPlayerBar() {
 
   return (
     <footer className="player-bar" aria-label="Audio player">
-      <div className="now-playing">
+      <button
+        ref={nowPlayingRef}
+        className="now-playing"
+        type="button"
+        aria-label="Open full player"
+        aria-haspopup="dialog"
+        aria-controls="full-player"
+        onClick={() => setIsFullOpen(true)}
+      >
         <span className="player-art" aria-hidden="true">۞</span>
         <div className="now-playing-copy">
           <strong>{currentSurah?.nameTransliteration ?? "Select a Surah"}</strong>
@@ -39,7 +44,7 @@ export default function AudioPlayerBar() {
             {currentReciter ? ` · ${currentReciter.name}` : ""}
           </span>
         </div>
-      </div>
+      </button>
 
       <div className="player-center">
         <div className="player-main-row">
@@ -100,6 +105,15 @@ export default function AudioPlayerBar() {
           onChange={(event) => setVolume(Number(event.target.value))}
         />
       </label>
+      <FullPlayerSheet
+        open={isFullOpen}
+        onClose={() => setIsFullOpen(false)}
+        onOpenOptions={() => {
+          setIsFullOpen(false);
+          setAreOptionsOpen(true);
+        }}
+        returnFocusRef={nowPlayingRef}
+      />
       <PlaybackOptionsSheet
         open={areOptionsOpen}
         onClose={() => setAreOptionsOpen(false)}

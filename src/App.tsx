@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AudioPlayerBar from "./components/AudioPlayerBar";
+import BottomNav from "./components/BottomNav";
 import DisplaySettingsSheet from "./components/DisplaySettingsSheet";
 import QuranReader from "./components/QuranReader";
 import ReciterSelector from "./components/ReciterSelector";
-import SurahList from "./components/SurahList";
+import SurahList, { type LibraryView } from "./components/SurahList";
 import { AudioPlayerProvider, useAudioPlayer } from "./context/AudioPlayerContext";
 import { useBookmarks } from "./hooks/useBookmarks";
 import { usePWAInstall } from "./hooks/usePWAInstall";
@@ -86,12 +87,13 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const { isInstallable, isIOSSafari, isStandalone, install, installError } = usePWAInstall();
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isDisplayOpen, setIsDisplayOpen] = useState(false);
-  const displayToggleRef = useRef<HTMLButtonElement>(null);
+  const displayToggleRef = useRef<HTMLElement | null>(null);
+  const libraryReturnRef = useRef<HTMLElement | null>(null);
+  const [libraryView, setLibraryView] = useState<LibraryView>("surahs");
   const closeDisplay = useCallback(() => setIsDisplayOpen(false), []);
   const [showIOSInstallHelp, setShowIOSInstallHelp] = useState(false);
   const [resumePosition] = useState(readSavedPosition);
   const [showResumeBanner, setShowResumeBanner] = useState(Boolean(resumePosition));
-  const libraryToggleRef = useRef<HTMLButtonElement>(null);
   const installButtonRef = useRef<HTMLButtonElement>(null);
   const installHelpCloseRef = useRef<HTMLButtonElement>(null);
   const {
@@ -122,9 +124,28 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
     });
   }, [currentSurah, toggleBookmark]);
 
+  const openLibrary = useCallback((view: LibraryView, trigger: HTMLElement | null) => {
+    libraryReturnRef.current = trigger;
+    setLibraryView(view);
+    setIsLibraryOpen(true);
+  }, []);
+
+  const openDisplay = useCallback((trigger: HTMLElement | null) => {
+    displayToggleRef.current = trigger;
+    setIsDisplayOpen(true);
+  }, []);
+
+  const goToReading = useCallback(() => {
+    setIsLibraryOpen(false);
+    setIsDisplayOpen(false);
+    const active = document.querySelector<HTMLElement>(".verse-card-row.active");
+    if (active) active.scrollIntoView({ behavior: "smooth", block: "center" });
+    else window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   const closeLibrary = useCallback(() => {
     setIsLibraryOpen(false);
-    window.requestAnimationFrame(() => libraryToggleRef.current?.focus());
+    window.requestAnimationFrame(() => libraryReturnRef.current?.focus());
   }, []);
 
   const selectBookmark = useCallback((bookmark: Bookmark) => {
@@ -206,13 +227,15 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
     <div className="app-shell" dir="ltr">
       <header className="site-header">
         <button
-          ref={libraryToggleRef}
           className="mobile-library-toggle"
           type="button"
           aria-label={isLibraryOpen ? "Close Surah library" : "Open Surah library"}
           aria-expanded={isLibraryOpen}
           aria-controls="surah-library"
-          onClick={() => setIsLibraryOpen((open) => !open)}
+          onClick={(event) => {
+            if (isLibraryOpen) closeLibrary();
+            else openLibrary("surahs", event.currentTarget);
+          }}
         >☰</button>
         <a className="brand" href="#" aria-label="My Quran Reciter home">
           <span className="brand-mark" aria-hidden="true">۞</span>
@@ -233,14 +256,13 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             </button>
           )}
           <button
-            ref={displayToggleRef}
             className="display-settings-button"
             type="button"
             aria-label="Display settings"
             aria-haspopup="dialog"
             aria-expanded={isDisplayOpen}
             aria-controls="display-settings"
-            onClick={() => setIsDisplayOpen(true)}
+            onClick={(event) => openDisplay(event.currentTarget)}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
@@ -317,6 +339,8 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
           onRemoveBookmark={removeBookmark}
           isOpen={isLibraryOpen}
           onClose={closeLibrary}
+          view={libraryView}
+          onViewChange={setLibraryView}
         />
         <div className="reader-column">
           {dataNotice && (
@@ -359,6 +383,14 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
         onThemeChange={readingPreferences.setTheme}
       />
       <AudioPlayerBar />
+      <BottomNav
+        active={isDisplayOpen ? "settings" : isLibraryOpen ? (libraryView === "bookmarks" ? "bookmarks" : "library") : "read"}
+        bookmarkCount={bookmarks.length}
+        onRead={goToReading}
+        onLibrary={(trigger) => openLibrary("surahs", trigger)}
+        onBookmarks={(trigger) => openLibrary("bookmarks", trigger)}
+        onSettings={openDisplay}
+      />
       <p className="keyboard-hint"><kbd>Space</kbd> play · <kbd>←</kbd>/<kbd>→</kbd> verse · <kbd>M</kbd> mute</p>
     </div>
   );

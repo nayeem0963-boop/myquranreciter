@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode, type RefObject } from "react";
+import { createPortal } from "react-dom";
 
 interface SheetProps {
   id: string;
@@ -65,7 +66,8 @@ export default function Sheet({ id, title, open, onClose, returnFocusRef, childr
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
-  return (
+  // Portal to <body> so ancestors with transforms/filters (e.g. the player bar) cannot clip or re-stack the sheet.
+  return createPortal(
     <div className={`sheet-root${open ? " open" : ""}`}>
       <button
         className="sheet-backdrop"
@@ -89,6 +91,7 @@ export default function Sheet({ id, title, open, onClose, returnFocusRef, childr
         </div>
         <div className="sheet-body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
