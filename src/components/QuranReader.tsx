@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import type { Ayah, Bookmark, Surah } from "../types";
 import type { ReadingTheme } from "../hooks/useReadingPreferences";
 import { PauseIcon, PlayIcon, StarIcon } from "./Icons";
+import { haptic } from "../utils/haptics";
 import TafsirDrawer from "./TafsirDrawer";
 
 interface QuranReaderProps {
@@ -74,9 +75,17 @@ export default function QuranReader({
       {surah.number !== 1 && surah.number !== 9 && (
         <p className="bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
       )}
-      <div className="verse-list" aria-label={`${surah.nameTransliteration} verses`}>
+      <div className="verse-list" role="list" aria-label={`${surah.nameTransliteration} verses`}>
         {isLoading && verses.length === 0 ? (
-          <p className="loading-state" role="status">Loading verses…</p>
+          <div className="verse-skeletons" role="status" aria-label="Loading verses">
+            {[0, 1, 2].map((item) => (
+              <div className="verse-skeleton" key={item} aria-hidden="true">
+                <span className="skeleton skeleton-badge" />
+                <span className="skeleton skeleton-line wide" />
+                <span className="skeleton skeleton-line" />
+              </div>
+            ))}
+          </div>
         ) : verses.length === 0 ? (
           <p className="loading-state" role="status">Verses are unavailable offline. Connect to the internet to load this Surah.</p>
         ) : verses.map((verse, index) => (
@@ -110,7 +119,10 @@ export default function QuranReader({
                     ? `Remove bookmark for verse ${verse.numberInSurah}`
                     : `Bookmark verse ${verse.numberInSurah}`}
                   aria-pressed={bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`)}
-                  onClick={() => onToggleBookmark(verse)}
+                  onClick={() => {
+                    haptic(12);
+                    onToggleBookmark(verse);
+                  }}
                 ><StarIcon size={22} active={bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`)} /></button>
                 <button
                   className="tafsir-trigger"

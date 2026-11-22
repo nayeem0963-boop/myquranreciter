@@ -58,7 +58,7 @@
 .bookmark-content span {
   display: -webkit-box;
   overflow: hidden;
-  color: #879188;
+  color: #5f6a62;
   font-size: 12px;
   line-height: 1.5;
   -webkit-box-orient: vertical;
@@ -71,7 +71,7 @@
   flex: 0 0 25px;
   border: 0;
   border-radius: 50%;
-  color: #9aa49c;
+  color: #657066;
   background: transparent;
   font-size: 16px;
   cursor: pointer;
@@ -194,7 +194,7 @@ body {
 
 .word-data-notice {
   margin: 9px 0 0;
-  color: #879188;
+  color: #5f6a62;
   font-size: 12px;
 }
 
@@ -272,7 +272,7 @@ a:focus-visible {
 }
 
 .brand-accent {
-  color: #568366;
+  color: #3f6b52;
 }
 
 .header-actions {
@@ -350,7 +350,7 @@ a:focus-visible {
   gap: 12px;
   margin: 0;
   padding-left: 20px;
-  color: #78827a;
+  color: #5d675f;
   font-size: 12px;
   line-height: 1.6;
 }
@@ -367,7 +367,7 @@ a:focus-visible {
   height: 28px;
   border: 0;
   border-radius: 50%;
-  color: #879188;
+  color: #5f6a62;
   background: #f4f6f2;
   font-size: 18px;
   cursor: pointer;
@@ -413,7 +413,7 @@ a:focus-visible {
 
 .select-chevron {
   right: 10px;
-  color: #8b948e;
+  color: #626c66;
 }
 
 .workspace {
@@ -447,7 +447,7 @@ a:focus-visible {
 
 .eyebrow {
   margin: 0 0 6px;
-  color: #9aa39b;
+  color: #657066;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
@@ -473,7 +473,7 @@ a:focus-visible {
   padding: 7px 8px;
   border: 0;
   border-radius: 7px;
-  color: #7d8980;
+  color: #5f6b63;
   background: transparent;
   font-size: 12px;
   cursor: pointer;
@@ -488,7 +488,7 @@ a:focus-visible {
 
 .library-tabs button span {
   margin-left: 3px;
-  color: #9aa49c;
+  color: #657066;
   font-size: 12px;
 }
 
@@ -515,7 +515,7 @@ a:focus-visible {
 }
 
 .search-icon {
-  color: #89948c;
+  color: #626c66;
   font-size: 22px;
   line-height: 1;
 }
@@ -570,7 +570,7 @@ a:focus-visible {
   place-items: center;
   border: 1px solid #e8ede7;
   border-radius: 9px;
-  color: #748078;
+  color: #5d6860;
   font-size: 12px;
 }
 
@@ -597,7 +597,7 @@ a:focus-visible {
 
 .surah-meta {
   overflow: hidden;
-  color: #929a94;
+  color: #626c65;
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -615,13 +615,13 @@ a:focus-visible {
   margin: 12px 0 0;
   padding-top: 13px;
   border-top: 1px solid #f0f2ed;
-  color: #969e97;
+  color: #656f68;
   font-size: 12px;
 }
 
 .translation-search-notice {
   margin: 8px 2px 0;
-  color: #8a948c;
+  color: #626c65;
   font-size: 12px;
   line-height: 1.5;
 }
@@ -661,7 +661,7 @@ a:focus-visible {
 .revelation-tag {
   padding: 6px 9px;
   border-radius: 20px;
-  color: #77877b;
+  color: #5a6a5e;
   background: #f3f6f2;
   font-size: 12px;
 }
@@ -697,7 +697,7 @@ a:focus-visible {
 
 .cover-meaning {
   margin: 4px 0 13px;
-  color: #839087;
+  color: #5f6b63;
   font-size: 12px;
 }
 
@@ -799,14 +799,14 @@ a:focus-visible {
 }
 
 .verse-play {
-  color: #8a9b8e;
+  color: #5f6d63;
   font-size: 12px;
   opacity: 0;
   transition: opacity 140ms ease;
 }
 
 .bookmark-toggle {
-  color: #8a978d;
+  color: #5f6d63;
   font-size: 15px;
   opacity: 0;
   transition: opacity 140ms ease, color 140ms ease;
@@ -850,7 +850,7 @@ a:focus-visible {
 
 .verse-transliteration {
   display: block;
-  color: #929078;
+  color: #686a55;
   font-size: 12px;
   font-style: italic;
   line-height: 1.6;
@@ -858,7 +858,7 @@ a:focus-visible {
 
 .verse-translation {
   display: block;
-  color: #79837c;
+  color: #5d675f;
   font-size: 12px;
   line-height: 1.7;
   text-align: left;
@@ -969,7 +969,7 @@ a:focus-visible {
   padding: 6px 8px;
   border: 1px solid transparent;
   border-radius: 7px;
-  color: #8a978d;
+  color: #5f6d63;
   background: transparent;
   font-size: 12px;
   cursor: pointer;
@@ -1046,7 +1046,7 @@ a:focus-visible {
   flex: 0 0 32px;
   border: 1px solid #e8ece6;
   border-radius: 50%;
-  color: #748078;
+  color: #5d6860;
   background: #fff;
   font-size: 20px;
   line-height: 1;
@@ -1076,7 +1076,7 @@ a:focus-visible {
 .tafsir-source {
   margin-top: auto;
   padding-top: 20px;
-  color: #929a94;
+  color: #626c65;
   font-size: 12px;
 }
 
@@ -1105,7 +1105,7 @@ a:focus-visible {
 .loading-state,
 .empty-state {
   padding: 20px 10px;
-  color: #8a948c;
+  color: #626c65;
   font-size: 12px;
   line-height: 1.6;
 }
@@ -1161,7 +1161,7 @@ a:focus-visible {
 }
 
 .now-playing-copy span {
-  color: #929a93;
+  color: #626c65;
   font-size: 12px;
 }
 
@@ -1233,7 +1233,7 @@ a:focus-visible {
 .speed-control select {
   padding: 4px 2px;
   border: 0;
-  color: #78837b;
+  color: #5d675f;
   background: transparent;
   font-size: 12px;
   cursor: pointer;
@@ -1243,7 +1243,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #929a94;
+  color: #626c65;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
@@ -1647,7 +1647,7 @@ kbd {
     padding: 0;
     border: 1px solid #e8ede7;
     border-radius: 50%;
-    color: #7d8980;
+    color: #5f6b63;
     background: #fff;
     font-size: 19px;
     cursor: pointer;
@@ -2002,7 +2002,7 @@ body.sheet-open {
 }
 
 .switch-description {
-  color: #78827a;
+  color: #5d675f;
   font-size: 12px;
 }
 
@@ -2115,7 +2115,7 @@ body.sheet-open {
 }
 
 .ab-arrow {
-  color: #78827a;
+  color: #5d675f;
 }
 
 @keyframes sheet-reveal {
@@ -2515,7 +2515,7 @@ body.sheet-open {
 }
 
 .full-player-meta span {
-  color: #78827a;
+  color: #5d675f;
   font-size: 12px;
 }
 
@@ -2636,7 +2636,7 @@ body.sheet-open {
     gap: 2px;
     padding: 0;
     border: 0;
-    color: #7d8980;
+    color: #5f6b63;
     background: transparent;
     cursor: pointer;
   }
@@ -2783,6 +2783,63 @@ button {
   filter: drop-shadow(0 0 0.5px currentColor);
 }
 
+/* ---- Loading skeletons & sheet drag handle ---- */
+.sheet-handle {
+  touch-action: none;
+}
+
+@media (min-width: 768px) {
+  .sheet-handle {
+    touch-action: auto;
+  }
+}
+
+.verse-skeletons {
+  display: grid;
+}
+
+.verse-skeleton {
+  display: grid;
+  gap: 12px;
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.skeleton {
+  display: block;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, #e9eee9 25%, #f5f8f5 50%, #e9eee9 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-badge {
+  width: 32px;
+  height: 32px;
+}
+
+.skeleton-line {
+  width: 60%;
+  height: 18px;
+  justify-self: end;
+}
+
+.skeleton-line.wide {
+  width: 90%;
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .ab-range {
+    animation: none;
+  }
+}
+
 /* ==== DARK THEME (generated) ==== */
 /* Dark overrides derived from the light rules above by lightness mapping; regenerate rather than hand-edit bulk values. */
 
@@ -2848,7 +2905,11 @@ button {
 }
 
 :root[data-theme="dark"] .bookmark-content span {
-  color: #9ba29b;
+  color: #9aa39c;
+}
+
+:root[data-theme="dark"] .bookmark-remove {
+  color: #9aa29b;
 }
 
 :root[data-theme="dark"] .bookmark-remove:hover {
@@ -2890,7 +2951,7 @@ button {
 }
 
 :root[data-theme="dark"] .word-data-notice {
-  color: #9ba29b;
+  color: #9aa39c;
 }
 
 :root[data-theme="dark"] .site-header {
@@ -2909,7 +2970,7 @@ button {
 }
 
 :root[data-theme="dark"] .brand-accent {
-  color: #8daf99;
+  color: #97bda7;
 }
 
 :root[data-theme="dark"] .install-app-button {
@@ -2936,7 +2997,7 @@ button {
 }
 
 :root[data-theme="dark"] .install-help-dialog ol {
-  color: #9ba19c;
+  color: #9aa29c;
 }
 
 :root[data-theme="dark"] .install-help-dialog li strong {
@@ -2944,7 +3005,7 @@ button {
 }
 
 :root[data-theme="dark"] .install-help-close {
-  color: #9ba29b;
+  color: #9aa39c;
   background: #23291e;
 }
 
@@ -2962,7 +3023,7 @@ button {
 }
 
 :root[data-theme="dark"] .select-chevron {
-  color: #9ba19d;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .panel {
@@ -2970,17 +3031,25 @@ button {
   border-color: #3e4736;
 }
 
+:root[data-theme="dark"] .eyebrow {
+  color: #9aa29b;
+}
+
 :root[data-theme="dark"] .library-tabs {
   background: #23281d;
 }
 
 :root[data-theme="dark"] .library-tabs button {
-  color: #9aa29c;
+  color: #99a39c;
 }
 
 :root[data-theme="dark"] .library-tabs button[aria-selected="true"] {
   color: #8fd0ae;
   background: #1a1a1a;
+}
+
+:root[data-theme="dark"] .library-tabs button span {
+  color: #9aa29b;
 }
 
 :root[data-theme="dark"] .count-pill {
@@ -2994,7 +3063,7 @@ button {
 }
 
 :root[data-theme="dark"] .search-icon {
-  color: #9aa29c;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .search-field input {
@@ -3011,7 +3080,7 @@ button {
 
 :root[data-theme="dark"] .surah-number {
   border-color: #3a4738;
-  color: #9aa29d;
+  color: #9aa39c;
 }
 
 :root[data-theme="dark"] .surah-title {
@@ -3019,7 +3088,7 @@ button {
 }
 
 :root[data-theme="dark"] .surah-meta {
-  color: #9ba19d;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .surah-arabic {
@@ -3028,11 +3097,11 @@ button {
 
 :root[data-theme="dark"] .library-note {
   border-top-color: #3e4534;
-  color: #9ba19c;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .translation-search-notice {
-  color: #9aa29c;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .data-notice {
@@ -3042,7 +3111,7 @@ button {
 }
 
 :root[data-theme="dark"] .revelation-tag {
-  color: #99a39c;
+  color: #97a59b;
   background: #21291e;
 }
 
@@ -3061,7 +3130,7 @@ button {
 }
 
 :root[data-theme="dark"] .cover-meaning {
-  color: #9aa39c;
+  color: #99a39c;
 }
 
 :root[data-theme="dark"] .bismillah {
@@ -3092,11 +3161,11 @@ button {
 }
 
 :root[data-theme="dark"] .verse-play {
-  color: #98a59b;
+  color: #98a49c;
 }
 
 :root[data-theme="dark"] .bookmark-toggle {
-  color: #99a39b;
+  color: #98a49c;
 }
 
 :root[data-theme="dark"] .bookmark-toggle.bookmarked {
@@ -3112,15 +3181,15 @@ button {
 }
 
 :root[data-theme="dark"] .verse-transliteration {
-  color: #a7a695;
+  color: #a7a897;
 }
 
 :root[data-theme="dark"] .verse-translation {
-  color: #9ba19d;
+  color: #9aa29c;
 }
 
 :root[data-theme="dark"] .tafsir-trigger {
-  color: #99a39b;
+  color: #98a49c;
 }
 
 :root[data-theme="dark"] .tafsir-trigger:hover {
@@ -3140,7 +3209,7 @@ button {
 
 :root[data-theme="dark"] .tafsir-close {
   border-color: #3e4839;
-  color: #9aa29d;
+  color: #9aa39c;
   background: #1a1a1a;
 }
 
@@ -3155,7 +3224,7 @@ button {
 }
 
 :root[data-theme="dark"] .tafsir-source {
-  color: #9ba19d;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .tafsir-status,
@@ -3171,7 +3240,7 @@ button {
 
 :root[data-theme="dark"] .loading-state,
 :root[data-theme="dark"] .empty-state {
-  color: #9aa29c;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .player-bar {
@@ -3184,7 +3253,7 @@ button {
 }
 
 :root[data-theme="dark"] .now-playing-copy span {
-  color: #9ba19c;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .mobile-options-toggle {
@@ -3207,7 +3276,7 @@ button {
 }
 
 :root[data-theme="dark"] .progress-row {
-  color: #9ba19d;
+  color: #9aa29d;
 }
 
 :root[data-theme="dark"] .progress-slider {
@@ -3258,7 +3327,7 @@ button {
 
   :root[data-theme="dark"] .drawer-close-button {
     border-color: #3a4738;
-    color: #9aa29c;
+    color: #99a39c;
     background: #1a1a1a;
   }
 }
@@ -3307,7 +3376,7 @@ button {
 }
 
 :root[data-theme="dark"] .switch-description {
-  color: #9ba19c;
+  color: #9aa29c;
 }
 
 :root[data-theme="dark"] .switch-track {
@@ -3342,7 +3411,7 @@ button {
 }
 
 :root[data-theme="dark"] .ab-arrow {
-  color: #9ba19c;
+  color: #9aa29c;
 }
 
 @media (min-width: 768px) {
@@ -3380,7 +3449,7 @@ button {
 }
 
 :root[data-theme="dark"] .full-player-meta span {
-  color: #9ba19c;
+  color: #9aa29c;
 }
 
 :root[data-theme="dark"] .full-player-verse {
@@ -3407,7 +3476,7 @@ button {
   }
 
   :root[data-theme="dark"] .bottom-nav-item {
-    color: #9aa29c;
+    color: #99a39c;
   }
 
   :root[data-theme="dark"] .bottom-nav-item.active {
@@ -3425,6 +3494,11 @@ button {
 :root[data-theme="dark"] .verse-card-row:active:not(.active) {
   background: #223526;
 }
+
+:root[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, #263026 25%, #1c261c 50%, #263026 75%);
+}
+/* ==== END DARK THEME ==== */
 
 @media (prefers-reduced-motion: reduce) {
   *,

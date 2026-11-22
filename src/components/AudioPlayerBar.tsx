@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { useRef, useState } from "react";
 import { useAudioPlayer } from "../context/AudioPlayerContext";
+import { haptic } from "../utils/haptics";
 import { formatTime } from "../utils/formatTime";
 import { MoreIcon, MuteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon, VolumeIcon } from "./Icons";
 import FullPlayerSheet from "./FullPlayerSheet";
@@ -55,7 +56,10 @@ export default function AudioPlayerBar() {
               className="play-button"
               type="button"
               aria-label={state.isPlaying ? "Pause" : "Play"}
-              onClick={togglePlayback}
+              onClick={() => {
+                haptic(10);
+                togglePlayback();
+              }}
             >{state.isPlaying ? <PauseIcon size={20} /> : <PlayIcon size={20} />}</button>
             <button className="icon-button" type="button" aria-label="Next verse" onClick={nextVerse}><NextIcon size={18} /></button>
           </div>

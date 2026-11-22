@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
 interface SheetProps {
@@ -21,6 +21,29 @@ const FOCUSABLE =
 export default function Sheet({ id, title, open, onClose, returnFocusRef, children }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(false);
+  const drag = useRef<{ startY: number; dy: number } | null>(null);
+
+  // Swipe-down on the header/grabber to dismiss (touch only; mobile bottom sheet).
+  const onDragStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "touch" || !panelRef.current) return;
+    drag.current = { startY: event.clientY, dy: 0 };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    panelRef.current.style.transition = "none";
+  };
+  const onDragMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!drag.current || !panelRef.current) return;
+    drag.current.dy = Math.max(0, event.clientY - drag.current.startY);
+    panelRef.current.style.transform = `translateY(${drag.current.dy}px)`;
+  };
+  const onDragEnd = () => {
+    const panel = panelRef.current;
+    if (!drag.current || !panel) return;
+    const shouldClose = drag.current.dy > 90;
+    drag.current = null;
+    panel.style.transition = "";
+    panel.style.transform = "";
+    if (shouldClose) onClose();
+  };
 
   useEffect(() => {
     if (open) {
@@ -84,10 +107,18 @@ export default function Sheet({ id, title, open, onClose, returnFocusRef, childr
         aria-modal="true"
         aria-labelledby={`${id}-title`}
       >
-        <span className="sheet-grabber" aria-hidden="true" />
-        <div className="sheet-header">
-          <h2 id={`${id}-title`}>{title}</h2>
-          <button className="sheet-close" type="button" aria-label={`Close ${title}`} onClick={onClose}>×</button>
+        <div
+          className="sheet-handle"
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+        >
+          <span className="sheet-grabber" aria-hidden="true" />
+          <div className="sheet-header">
+            <h2 id={`${id}-title`}>{title}</h2>
+            <button className="sheet-close" type="button" aria-label={`Close ${title}`} onClick={onClose}>×</button>
+          </div>
         </div>
         <div className="sheet-body">{children}</div>
       </div>
