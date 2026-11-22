@@ -73,14 +73,14 @@ export default function SurahList({
 
   return (
     <>
-      {isOpen && (
-        <button
-          className="mobile-drawer-backdrop"
-          type="button"
-          aria-label="Close Surah library"
-          onClick={onClose}
-        />
-      )}
+      <button
+        className={`mobile-drawer-backdrop${isOpen ? " visible" : ""}`}
+        type="button"
+        tabIndex={-1}
+        aria-hidden={!isOpen}
+        aria-label="Close Surah library"
+        onClick={onClose}
+      />
       <aside
         id="surah-library"
         className={`surah-panel panel${isOpen ? " drawer-open" : ""}`}

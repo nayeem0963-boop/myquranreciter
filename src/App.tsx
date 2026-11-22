@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AudioPlayerBar from "./components/AudioPlayerBar";
+import DisplaySettingsSheet from "./components/DisplaySettingsSheet";
 import QuranReader from "./components/QuranReader";
 import ReciterSelector from "./components/ReciterSelector";
 import SurahList from "./components/SurahList";
@@ -84,6 +85,9 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const { bookmarks, toggleBookmark, removeBookmark } = useBookmarks();
   const { isInstallable, isIOSSafari, isStandalone, install, installError } = usePWAInstall();
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [isDisplayOpen, setIsDisplayOpen] = useState(false);
+  const displayToggleRef = useRef<HTMLButtonElement>(null);
+  const closeDisplay = useCallback(() => setIsDisplayOpen(false), []);
   const [showIOSInstallHelp, setShowIOSInstallHelp] = useState(false);
   const [resumePosition] = useState(readSavedPosition);
   const [showResumeBanner, setShowResumeBanner] = useState(Boolean(resumePosition));
@@ -228,6 +232,22 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
               <span className="install-button-label">Install App</span>
             </button>
           )}
+          <button
+            ref={displayToggleRef}
+            className="display-settings-button"
+            type="button"
+            aria-label="Display settings"
+            aria-haspopup="dialog"
+            aria-expanded={isDisplayOpen}
+            aria-controls="display-settings"
+            onClick={() => setIsDisplayOpen(true)}
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
+              <circle cx="16" cy="7" r="2" />
+              <circle cx="8" cy="17" r="2" />
+            </svg>
+          </button>
           <ReciterSelector
             reciters={getReciters()}
             selectedReciterId={state.currentReciterId}
@@ -317,10 +337,6 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             showTranslation={readingPreferences.showTranslation}
             showTransliteration={readingPreferences.showTransliteration}
             theme={readingPreferences.theme}
-            onArabicFontSizeChange={readingPreferences.setArabicFontSize}
-            onToggleTranslation={readingPreferences.toggleTranslation}
-            onToggleTransliteration={readingPreferences.toggleTransliteration}
-            onThemeChange={readingPreferences.setTheme}
             bookmarks={bookmarks}
             onToggleBookmark={toggleVerseBookmark}
             isLoadingWords={isLoadingWords}
@@ -329,6 +345,19 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
         </div>
       </main>
 
+      <DisplaySettingsSheet
+        open={isDisplayOpen}
+        onClose={closeDisplay}
+        returnFocusRef={displayToggleRef}
+        arabicFontSize={readingPreferences.arabicFontSize}
+        showTranslation={readingPreferences.showTranslation}
+        showTransliteration={readingPreferences.showTransliteration}
+        theme={readingPreferences.theme}
+        onArabicFontSizeChange={readingPreferences.setArabicFontSize}
+        onToggleTranslation={readingPreferences.toggleTranslation}
+        onToggleTransliteration={readingPreferences.toggleTransliteration}
+        onThemeChange={readingPreferences.setTheme}
+      />
       <AudioPlayerBar />
       <p className="keyboard-hint"><kbd>Space</kbd> play · <kbd>←</kbd>/<kbd>→</kbd> verse · <kbd>M</kbd> mute</p>
     </div>

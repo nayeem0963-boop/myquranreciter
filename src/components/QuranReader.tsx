@@ -15,10 +15,6 @@ interface QuranReaderProps {
   showTranslation: boolean;
   showTransliteration: boolean;
   theme: ReadingTheme;
-  onArabicFontSizeChange: (size: number) => void;
-  onToggleTranslation: () => void;
-  onToggleTransliteration: () => void;
-  onThemeChange: (theme: ReadingTheme) => void;
   bookmarks: Bookmark[];
   onToggleBookmark: (verse: Ayah) => void;
   isLoadingWords: boolean;
@@ -37,10 +33,6 @@ export default function QuranReader({
   showTranslation,
   showTransliteration,
   theme,
-  onArabicFontSizeChange,
-  onToggleTranslation,
-  onToggleTransliteration,
-  onThemeChange,
   bookmarks,
   onToggleBookmark,
   isLoadingWords,
@@ -68,53 +60,14 @@ export default function QuranReader({
         <span className="eyebrow">THE HOLY QURAN</span>
         <span className="revelation-tag">{surah.revelationType} · {surah.numberOfAyahs} verses</span>
       </div>
-      <div className="reader-settings" aria-label="Reading settings">
-        <label className="font-size-control">
-          <span>Arabic text</span>
-          <input
-            type="range"
-            min="22"
-            max="40"
-            value={arabicFontSize}
-            aria-label="Arabic font size"
-            onChange={(event) => onArabicFontSizeChange(Number(event.target.value))}
-          />
-          <output>{arabicFontSize}px</output>
-        </label>
-        <button
-          className="setting-toggle"
-          type="button"
-          aria-pressed={showTranslation}
-          onClick={onToggleTranslation}
-        >Translation</button>
-        <button
-          className="setting-toggle"
-          type="button"
-          aria-pressed={showTransliteration}
-          onClick={onToggleTransliteration}
-        >Transliteration</button>
-        <label className="theme-control">
-          <span>Reading mode</span>
-          <select
-            value={theme}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (value === "light" || value === "warm" || value === "dark") onThemeChange(value);
-            }}
-          >
-            <option value="light">Light</option>
-            <option value="warm">Warm</option>
-            <option value="dark">Dark</option>
-          </select>
-        </label>
-      </div>
       <div className="surah-cover">
-        <span className="cover-ornament" aria-hidden="true">۞</span>
+        <div className="cover-titles">
+          <h1 id="reader-title">{surah.nameTransliteration}</h1>
+          <p className="cover-meaning">{surah.nameEnglish}</p>
+        </div>
         <p className="cover-arabic" lang="ar" dir="rtl">{surah.nameArabic}</p>
-        <h1 id="reader-title">{surah.nameTransliteration}</h1>
-        <p className="cover-meaning">{surah.nameEnglish}</p>
         <button className="listen-surah-button" type="button" onClick={onPlaySurah}>
-          <span aria-hidden="true">▶</span> Listen to this Surah
+          <span aria-hidden="true">▶</span> Listen
         </button>
       </div>
       {surah.number !== 1 && surah.number !== 9 && (
@@ -132,13 +85,40 @@ export default function QuranReader({
             role="listitem"
             ref={activeVerseIndex === index ? activeVerseRef : undefined}
           >
-            <button
-              className="verse-marker"
-              type="button"
-              onClick={() => onPlayVerse(index)}
-              aria-label={`Play verse ${verse.numberInSurah}`}
-              aria-current={activeVerseIndex === index ? "true" : undefined}
-            >{verse.numberInSurah}</button>
+            <div className="verse-toolbar">
+              <button
+                className="verse-marker"
+                type="button"
+                onClick={() => onPlayVerse(index)}
+                aria-label={`Play verse ${verse.numberInSurah}`}
+                aria-current={activeVerseIndex === index ? "true" : undefined}
+              >{verse.numberInSurah}</button>
+              <div className="verse-actions">
+                <button
+                  className={`verse-play${activeVerseIndex === index && isPlaying ? " playing" : ""}`}
+                  type="button"
+                  aria-label={activeVerseIndex === index && isPlaying ? "Currently playing" : `Play verse ${verse.numberInSurah}`}
+                  onClick={() => onPlayVerse(index)}
+                >
+                  {activeVerseIndex === index && isPlaying ? "Ⅱ" : "▶"}
+                </button>
+                <button
+                  className={`bookmark-toggle${bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`) ? " bookmarked" : ""}`}
+                  type="button"
+                  aria-label={bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`)
+                    ? `Remove bookmark for verse ${verse.numberInSurah}`
+                    : `Bookmark verse ${verse.numberInSurah}`}
+                  aria-pressed={bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`)}
+                  onClick={() => onToggleBookmark(verse)}
+                >{bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`) ? "★" : "☆"}</button>
+                <button
+                  className="tafsir-trigger"
+                  type="button"
+                  aria-label={`Read Tafsir for verse ${verse.numberInSurah}`}
+                  onClick={() => setTafsirVerse(verse)}
+                >Tafsir</button>
+              </div>
+            </div>
             <div
               className="verse-content"
               style={{ "--arabic-font-size": `${arabicFontSize}px` } as CSSProperties}
@@ -190,29 +170,6 @@ export default function QuranReader({
                 <span className="verse-translation" lang="en" dir="ltr">{verse.translation}</span>
               )}
             </div>
-            <button
-              className={`verse-play${activeVerseIndex === index && isPlaying ? " playing" : ""}`}
-              type="button"
-              aria-label={activeVerseIndex === index && isPlaying ? "Currently playing" : `Play verse ${verse.numberInSurah}`}
-              onClick={() => onPlayVerse(index)}
-            >
-              {activeVerseIndex === index && isPlaying ? "Ⅱ" : "▶"}
-            </button>
-            <button
-              className={`bookmark-toggle${bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`) ? " bookmarked" : ""}`}
-              type="button"
-              aria-label={bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`)
-                ? `Remove bookmark for verse ${verse.numberInSurah}`
-                : `Bookmark verse ${verse.numberInSurah}`}
-              aria-pressed={bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`)}
-              onClick={() => onToggleBookmark(verse)}
-            >{bookmarkKeys.has(`${surah.number}:${verse.numberInSurah}`) ? "★" : "☆"}</button>
-            <button
-              className="tafsir-trigger"
-              type="button"
-              aria-label={`Read Tafsir for verse ${verse.numberInSurah}`}
-              onClick={() => setTafsirVerse(verse)}
-            >Tafsir</button>
           </div>
         ))}
       </div>

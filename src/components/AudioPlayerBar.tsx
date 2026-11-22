@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAudioPlayer } from "../context/AudioPlayerContext";
+import PlaybackOptionsSheet from "./PlaybackOptionsSheet";
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds)) return "0:00";
@@ -11,6 +12,7 @@ function formatTime(seconds: number): string {
 
 export default function AudioPlayerBar() {
   const [areOptionsOpen, setAreOptionsOpen] = useState(false);
+  const optionsToggleRef = useRef<HTMLButtonElement>(null);
   const {
     state,
     currentSurah,
@@ -20,17 +22,10 @@ export default function AudioPlayerBar() {
     nextVerse,
     previousVerse,
     seek,
-    setPlaybackRate,
     setVolume,
-    toggleRepeat,
     toggleMute,
-    toggleAbLoop,
-    setAbStartIndex,
-    setAbEndIndex,
-    setRecitationPauseSeconds,
   } = useAudioPlayer();
   const activeVerse = verses[state.ayahIndex];
-  const abEndIndex = state.abEndIndex < 0 ? Math.max(verses.length - 1, 0) : state.abEndIndex;
   const progress = state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
 
   return (
@@ -59,94 +54,15 @@ export default function AudioPlayerBar() {
             <button className="icon-button" type="button" aria-label="Next verse" onClick={nextVerse}>▶|</button>
           </div>
           <button
+            ref={optionsToggleRef}
             className="mobile-options-toggle"
             type="button"
             aria-label="More playback options"
+            aria-haspopup="dialog"
             aria-expanded={areOptionsOpen}
-            aria-controls="player-options"
-            onClick={() => setAreOptionsOpen((open) => !open)}
+            aria-controls="playback-options"
+            onClick={() => setAreOptionsOpen(true)}
           >•••</button>
-        </div>
-        <div
-          id="player-options"
-          className={`player-options-row${areOptionsOpen ? " expanded" : ""}`}
-        >
-          <button
-            className={`icon-button repeat-button${state.repeatMode !== "off" ? " enabled" : ""}`}
-            type="button"
-            aria-label={`Repeat mode: ${state.repeatMode}. Activate to change repeat mode.`}
-            title={`Repeat ${state.repeatMode}`}
-            aria-pressed={state.repeatMode !== "off"}
-            onClick={toggleRepeat}
-          >↻{state.repeatMode === "verse" ? "¹" : state.repeatMode === "surah" ? "∞" : ""}</button>
-          <label className="speed-control">
-            <span className="sr-only">Playback speed</span>
-            <select
-              value={state.playbackRate}
-              onChange={(event) => setPlaybackRate(Number(event.target.value))}
-              aria-label="Playback speed"
-            >
-              <option value="0.75">0.75×</option>
-              <option value="1">1×</option>
-              <option value="1.25">1.25×</option>
-              <option value="1.5">1.5×</option>
-            </select>
-          </label>
-          <div className="ab-loop-controls" aria-label="A-B range loop controls">
-            <button
-              className={`ab-loop-toggle${state.abLoopEnabled ? " enabled" : ""}`}
-              type="button"
-              aria-label={state.abLoopEnabled ? "Turn off A-B loop" : "Turn on A-B loop"}
-              aria-pressed={state.abLoopEnabled}
-              disabled={verses.length === 0}
-              onClick={toggleAbLoop}
-            >A–B</button>
-            <label>
-              <span>A</span>
-              <select
-                aria-label="Start verse for A-B loop"
-                value={state.abStartIndex}
-                disabled={verses.length === 0}
-                onChange={(event) => setAbStartIndex(Number(event.target.value))}
-              >
-                {verses.map((verse, index) => (
-                  <option key={verse.numberInSurah} value={index}>{verse.numberInSurah}</option>
-                ))}
-              </select>
-            </label>
-            <span aria-hidden="true">→</span>
-            <label>
-              <span>B</span>
-              <select
-                aria-label="End verse for A-B loop"
-                value={abEndIndex}
-                disabled={verses.length === 0}
-                onChange={(event) => setAbEndIndex(Number(event.target.value))}
-              >
-                {verses.map((verse, index) => (
-                  <option key={verse.numberInSurah} value={index}>{verse.numberInSurah}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <label className="recitation-pause-control">
-            <span>Recitation pause</span>
-            <select
-              aria-label="Recitation pause"
-              value={state.recitationPauseSeconds}
-              onChange={(event) => {
-                const seconds = Number(event.target.value);
-                if (seconds === 0 || seconds === 2 || seconds === 4 || seconds === 6) {
-                  setRecitationPauseSeconds(seconds);
-                }
-              }}
-            >
-              <option value="0">None</option>
-              <option value="2">2s</option>
-              <option value="4">4s</option>
-              <option value="6">6s</option>
-            </select>
-          </label>
         </div>
         <div className="progress-row">
           <span>{formatTime(state.currentTime)}</span>
@@ -184,6 +100,11 @@ export default function AudioPlayerBar() {
           onChange={(event) => setVolume(Number(event.target.value))}
         />
       </label>
+      <PlaybackOptionsSheet
+        open={areOptionsOpen}
+        onClose={() => setAreOptionsOpen(false)}
+        returnFocusRef={optionsToggleRef}
+      />
     </footer>
   );
 }
