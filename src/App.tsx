@@ -90,6 +90,13 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const displayToggleRef = useRef<HTMLElement | null>(null);
   const libraryReturnRef = useRef<HTMLElement | null>(null);
   const [libraryView, setLibraryView] = useState<LibraryView>("surahs");
+  const isDarkTheme = readingPreferences.theme === "dark";
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", isDarkTheme ? "dark" : "light");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isDarkTheme ? "#141b17" : "#f6f7f2");
+  }, [isDarkTheme]);
+
   const closeDisplay = useCallback(() => setIsDisplayOpen(false), []);
   const [showIOSInstallHelp, setShowIOSInstallHelp] = useState(false);
   const [resumePosition] = useState(readSavedPosition);
