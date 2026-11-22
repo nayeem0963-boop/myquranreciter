@@ -21,11 +21,19 @@ interface SavedReadingPreferences {
 }
 
 const STORAGE_KEY = "myquranreciter.reading";
+function systemTheme(): ReadingTheme {
+  try {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
+
 const DEFAULT_PREFERENCES = {
   arabicFontSize: 29,
   showTranslation: true,
   showTransliteration: false,
-  theme: "light" as ReadingTheme,
+  theme: systemTheme(),
 };
 
 function readPreferences() {

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Bookmark, Surah } from "../types";
 import { fetchTranslationSearchIndex } from "../services/quranApi";
 
+export type LibraryView = "surahs" | "bookmarks";
+
 interface SurahListProps {
   surahs: Surah[];
   selectedSurahId: number;
@@ -11,6 +13,8 @@ interface SurahListProps {
   onRemoveBookmark: (surahId: number, verseNumber: number) => void;
   isOpen: boolean;
   onClose: () => void;
+  view: LibraryView;
+  onViewChange: (view: LibraryView) => void;
 }
 
 export default function SurahList({
@@ -22,9 +26,10 @@ export default function SurahList({
   onRemoveBookmark,
   isOpen,
   onClose,
+  view,
+  onViewChange,
 }: SurahListProps) {
   const [query, setQuery] = useState("");
-  const [view, setView] = useState<"surahs" | "bookmarks">("surahs");
   const [translationIndex, setTranslationIndex] = useState<Record<number, string> | null>(null);
   const [translationNotice, setTranslationNotice] = useState("");
   const [isLoadingTranslations, setIsLoadingTranslations] = useState(false);
@@ -73,14 +78,14 @@ export default function SurahList({
 
   return (
     <>
-      {isOpen && (
-        <button
-          className="mobile-drawer-backdrop"
-          type="button"
-          aria-label="Close Surah library"
-          onClick={onClose}
-        />
-      )}
+      <button
+        className={`mobile-drawer-backdrop${isOpen ? " visible" : ""}`}
+        type="button"
+        tabIndex={-1}
+        aria-hidden={!isOpen}
+        aria-label="Close Surah library"
+        onClick={onClose}
+      />
       <aside
         id="surah-library"
         className={`surah-panel panel${isOpen ? " drawer-open" : ""}`}
@@ -109,13 +114,13 @@ export default function SurahList({
             type="button"
             role="tab"
             aria-selected={view === "surahs"}
-            onClick={() => setView("surahs")}
+            onClick={() => onViewChange("surahs")}
           >Surahs</button>
           <button
             type="button"
             role="tab"
             aria-selected={view === "bookmarks"}
-            onClick={() => setView("bookmarks")}
+            onClick={() => onViewChange("bookmarks")}
           >Bookmarks <span>{bookmarks.length}</span></button>
         </div>
         {view === "surahs" ? (
@@ -166,7 +171,7 @@ export default function SurahList({
                   className="bookmark-content"
                   type="button"
                   onClick={() => {
-                    setView("surahs");
+                    onViewChange("surahs");
                     setQuery("");
                     onSelectBookmark(bookmark);
                   }}
