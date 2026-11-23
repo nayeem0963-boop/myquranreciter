@@ -3509,24 +3509,62 @@ button {
   }
 }
 
-/* Home / welcome page */
-.home-welcome {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 32px 20px calc(120px + env(safe-area-inset-bottom));
-  text-align: center;
-}
-.home-welcome h1 { margin: 4px 0 8px; font-size: 2rem; color: var(--green-dark); }
-.home-welcome h2 { font-size: 1rem; margin: 0 0 10px; text-align: left; }
-.home-bismillah { font-size: 2rem; margin: 8px 0; color: var(--green); }
-.home-lead { color: var(--muted); margin: 0 0 24px; }
-.home-actions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
-.home-actions button { min-height: var(--tap, 44px); border-radius: 9999px; padding: 0 20px; cursor: pointer; font: inherit; }
-.home-secondary { background: var(--panel); color: var(--green-dark); border: 1px solid var(--line); }
-.home-section { margin-top: 24px; }
-.home-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.home-list button { width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; color: inherit; font: inherit; cursor: pointer; display: grid; gap: 2px; }
-.home-list span { color: var(--muted); font-size: 0.85rem; }
-.home-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.home-chip { background: var(--mint); color: var(--green-dark); border: 0; border-radius: 9999px; padding: 8px 14px; font: inherit; cursor: pointer; }
 [hidden]{display:none!important}
+
+/* Home landing page: dark gold Surah list */
+.home-page {
+  --gold: #e0b73e;
+  --gold-soft: rgba(224, 183, 62, 0.35);
+  min-height: 100dvh;
+  background: radial-gradient(circle at 50% 0%, #0f1a33 0%, #060b18 70%);
+  color: #f2f4f8;
+  padding-bottom: calc(150px + env(safe-area-inset-bottom));
+}
+.home-header {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px; background: rgba(6, 11, 24, 0.92);
+  border-bottom: 1px solid var(--gold-soft); backdrop-filter: blur(8px);
+}
+.home-logo {
+  flex: none; width: 52px; height: 52px; border-radius: 50%;
+  border: 1.5px solid var(--gold); color: var(--gold);
+  display: grid; place-items: center; font-size: 1.5rem;
+  background: rgba(224, 183, 62, 0.08);
+}
+.home-title { flex: 1; min-width: 0; }
+.home-title h1 { margin: 0; font-family: Georgia, serif; font-size: 1.1rem; letter-spacing: 0.12em; color: var(--gold); }
+.home-title p { margin: 2px 0 0; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--gold); opacity: 0.8; }
+.home-icon-btn {
+  flex: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--gold-soft); background: transparent; color: var(--gold); font-size: 1.1rem;
+}
+.home-search { padding: 12px 16px 0; }
+.home-search input {
+  width: 100%; box-sizing: border-box; min-height: 44px; padding: 0 16px; font: inherit;
+  border-radius: 9999px; border: 1px solid var(--gold-soft); background: #0b1226; color: inherit;
+}
+.home-resume {
+  display: block; width: calc(100% - 32px); margin: 16px 16px 0; min-height: 48px; cursor: pointer;
+  border-radius: 14px; border: 1px solid var(--gold); background: rgba(224, 183, 62, 0.12); color: var(--gold); font: inherit;
+}
+.home-cards { list-style: none; margin: 0; padding: 16px; display: grid; gap: 14px; }
+.home-card {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
+  padding: 20px 16px; border-radius: 22px; border: 1px solid var(--gold-soft);
+  background: linear-gradient(160deg, #0d1630, #080e1f); cursor: pointer; text-align: left; width: 100%; color: inherit; font: inherit;
+}
+.home-card-num {
+  width: 54px; height: 54px; border-radius: 14px; border: 1px solid var(--gold-soft);
+  display: grid; place-items: center; color: var(--gold); font-family: Georgia, serif; font-weight: 700;
+  background: linear-gradient(160deg, #14224a, #0a1330);
+}
+.home-card-main strong { display: block; font-size: 1.1rem; }
+.home-card-main span { color: #9aa6c0; font-size: 0.9rem; }
+.home-card-side { display: grid; justify-items: end; gap: 8px; }
+.home-card-ar { color: var(--gold); font-size: 1.5rem; }
+.home-play {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gold-soft);
+  background: #14224a; color: var(--gold); cursor: pointer; font-size: 0.9rem;
+}
+.home-empty { text-align: center; color: #9aa6c0; padding: 24px; }

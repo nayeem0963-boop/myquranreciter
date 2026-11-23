@@ -244,7 +244,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
 
   return (
     <div className="app-shell" dir="ltr">
-      <header className="site-header">
+      <header className="site-header" hidden={view === "home"}>
         <button
           className="mobile-library-toggle"
           type="button"
@@ -352,17 +352,16 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
         <HomeWelcome
           surahs={surahs}
           resume={resumePosition}
-          bookmarks={bookmarks}
+          showInstall={!isStandalone && (isInstallable || isIOSSafari)}
+          onInstall={() => void handleInstallClick()}
           onResume={() => {
             if (!resumePosition) return;
             setView("reader");
             setShowResumeBanner(false);
             playVerse(resumePosition.surahId, resumePosition.ayahIndex);
           }}
-          onStartReading={goToReading}
-          onBrowse={(trigger) => openLibrary("surahs", trigger)}
-          onOpenBookmark={selectBookmark}
-          onSelectSurah={handleSelectSurah}
+          onOpenSurah={handleSelectSurah}
+          onPlaySurah={(id) => { setView("reader"); playSurah(id); }}
         />
       )}
 

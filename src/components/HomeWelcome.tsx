@@ -1,73 +1,82 @@
-import type { Bookmark, Surah } from "../types";
+import { useMemo, useState } from "react";
+import type { Surah } from "../types";
 
 interface HomeWelcomeProps {
   surahs: Surah[];
   resume: { surahId: number; ayahIndex: number } | null;
-  bookmarks: Bookmark[];
+  showInstall: boolean;
+  onInstall: () => void;
   onResume: () => void;
-  onStartReading: () => void;
-  onBrowse: (trigger: HTMLElement) => void;
-  onOpenBookmark: (bookmark: Bookmark) => void;
-  onSelectSurah: (surahId: number) => void;
+  onOpenSurah: (surahId: number) => void;
+  onPlaySurah: (surahId: number) => void;
 }
 
-const FEATURED = [1, 36, 55, 67, 112];
-
 export default function HomeWelcome({
-  surahs, resume, bookmarks, onResume, onStartReading, onBrowse, onOpenBookmark, onSelectSurah,
+  surahs, resume, showInstall, onInstall, onResume, onOpenSurah, onPlaySurah,
 }: HomeWelcomeProps) {
+  const [searching, setSearching] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return surahs;
+    return surahs.filter((s) =>
+      String(s.number) === q ||
+      s.nameTransliteration.toLowerCase().includes(q) ||
+      s.nameEnglish.toLowerCase().includes(q) ||
+      s.nameArabic.includes(query.trim()));
+  }, [query, surahs]);
+
   const resumeSurah = resume ? surahs.find((s) => s.number === resume.surahId) : undefined;
-  const featured = FEATURED.map((n) => surahs.find((s) => s.number === n)).filter((s): s is Surah => Boolean(s));
 
   return (
-    <main className="home-welcome" aria-labelledby="home-title">
-      <p className="eyebrow">WELCOME</p>
-      <p className="home-bismillah" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
-      <h1 id="home-title">As-salamu alaykum</h1>
-      <p className="home-lead">Read, listen and reflect on the Quran, one verse at a time.</p>
-
-      <div className="home-actions">
-        {resume && (
-          <button type="button" className="resume-action" onClick={onResume}>
-            Resume: {resumeSurah?.nameTransliteration ?? `Surah ${resume.surahId}`} · Verse {resume.ayahIndex + 1}
-          </button>
+    <div className="home-page">
+      <header className="home-header">
+        <span className="home-logo" aria-hidden="true">★</span>
+        <div className="home-title">
+          <h1>MYQURANRECITER</h1>
+          <p>HOLY QURAN AUDIO</p>
+        </div>
+        <button className="home-icon-btn" type="button" aria-label="Search Surahs" aria-expanded={searching}
+          onClick={() => setSearching((v) => !v)}>⌕</button>
+        {showInstall && (
+          <button className="home-icon-btn" type="button" aria-label="Install App" onClick={onInstall}>↓</button>
         )}
-        <button type="button" className={resume ? "home-secondary" : "resume-action"} onClick={onStartReading}>
-          {resume ? "Open reader" : "Start reading"}
-        </button>
-        <button type="button" className="home-secondary" onClick={(e) => onBrowse(e.currentTarget)}>
-          Browse Surahs
-        </button>
-      </div>
+      </header>
 
-      {bookmarks.length > 0 && (
-        <section className="home-section" aria-label="Saved verses">
-          <h2>Saved verses</h2>
-          <ul className="home-list">
-            {bookmarks.slice(0, 3).map((b) => (
-              <li key={`${b.surahId}:${b.verseNumber}`}>
-                <button type="button" onClick={() => onOpenBookmark(b)}>
-                  <strong>{b.surahTitle} · {b.verseNumber}</strong>
-                  <span>{b.snippet}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {searching && (
+        <div className="home-search">
+          <input type="search" autoFocus placeholder="Search Surah name or number" value={query}
+            onChange={(e) => setQuery(e.target.value)} aria-label="Search Surahs" />
+        </div>
       )}
 
-      {featured.length > 0 && (
-        <section className="home-section" aria-label="Popular Surahs">
-          <h2>Popular Surahs</h2>
-          <div className="home-chips">
-            {featured.map((s) => (
-              <button key={s.number} type="button" className="home-chip" onClick={() => onSelectSurah(s.number)}>
-                {s.nameTransliteration}
-              </button>
-            ))}
-          </div>
-        </section>
+      {resume && !query && (
+        <button type="button" className="home-resume" onClick={onResume}>
+          Resume: {resumeSurah?.nameTransliteration ?? `Surah ${resume.surahId}`} · Verse {resume.ayahIndex + 1}
+        </button>
       )}
-    </main>
+
+      <ul className="home-cards">
+        {visible.map((s) => (
+          <li key={s.number}>
+            <div className="home-card" role="button" tabIndex={0} onClick={() => onOpenSurah(s.number)}
+              onKeyDown={(e) => { if (e.key === "Enter") onOpenSurah(s.number); }}>
+              <span className="home-card-num">{String(s.number).padStart(2, "0")}</span>
+              <span className="home-card-main">
+                <strong>Surah {s.nameTransliteration}</strong>
+                <span>{s.nameEnglish} • {s.numberOfAyahs} Verses</span>
+              </span>
+              <span className="home-card-side">
+                <span className="home-card-ar" lang="ar" dir="rtl">{s.nameArabic}</span>
+                <button type="button" className="home-play" aria-label={`Play Surah ${s.nameTransliteration}`}
+                  onClick={(e) => { e.stopPropagation(); onPlaySurah(s.number); }}>▶</button>
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {visible.length === 0 && <p className="home-empty">No Surah matches your search.</p>}
+    </div>
   );
 }
