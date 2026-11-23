@@ -3,6 +3,7 @@ import { useAudioPlayer } from "../context/AudioPlayerContext";
 import { getReciters } from "../services/quranApi";
 
 interface LandingProps {
+  leaving: boolean;
   onEnter: (options?: { surahId?: number; library?: boolean }) => void;
   canInstall: boolean;
   onInstall: () => void;
@@ -28,13 +29,13 @@ function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-export default function Landing({ onEnter, canInstall, onInstall }: LandingProps) {
+export default function Landing({ leaving, onEnter, canInstall, onInstall }: LandingProps) {
   const { state, setReciter } = useAudioPlayer();
   const reciters = getReciters();
   const listen = useCallback((surahId: number) => onEnter({ surahId }), [onEnter]);
 
   return (
-    <div className="landing" role="region" aria-label="Welcome to My Quran Reciter">
+    <div className={`landing${leaving ? " landing-leaving" : ""}`} role="region" aria-label="Welcome to My Quran Reciter" aria-hidden={leaving || undefined}>
       <header className="landing-header">
         <a className="landing-brand" href="#top" onClick={(event) => { event.preventDefault(); scrollToSection("landing-hero"); }}>
           <span className="landing-brand-mark" aria-hidden="true">✦</span>
@@ -148,7 +149,6 @@ export default function Landing({ onEnter, canInstall, onInstall }: LandingProps
       <footer className="landing-footer">
         <span className="landing-brand-name">myquranreciter</span>
         <small>Continuous Charity (Sadaqah Jariyah) Project</small>
-        <button className="landing-link" type="button" onClick={() => onEnter()}>Open the app</button>
       </footer>
     </div>
   );

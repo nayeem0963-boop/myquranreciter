@@ -142,7 +142,7 @@
 }
 .landing-btn-navy { color: #f6e7b3; background: linear-gradient(90deg, var(--l-navy-900), var(--l-navy-800)); }
 .landing-btn-ghost { color: var(--l-gold-soft); background: rgba(10, 17, 40, 0.75); border-color: rgba(212, 175, 55, 0.4); }
-.landing-btn:focus-visible, .landing-pill:focus-visible, .landing-surah:focus-visible, .landing-reciter:focus-visible, .landing-link:focus-visible {
+.landing-btn:focus-visible, .landing-pill:focus-visible, .landing-surah:focus-visible, .landing-reciter:focus-visible {
   outline: 2px solid var(--l-gold-soft);
   outline-offset: 3px;
 }
@@ -279,7 +279,6 @@
   text-align: center;
 }
 .landing-footer small { color: #6f7a97; }
-.landing-link { padding: 8px 12px; color: var(--l-gold-soft); background: none; border: 0; text-decoration: underline; }
 
 @media (min-width: 640px) {
   .landing-cta { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); max-width: 680px; }
@@ -295,3 +294,14 @@
 @media (prefers-reduced-motion: reduce) { .landing * { transition: none !important; } }
 
 .landing-section, .landing-hero { scroll-margin-top: 72px; }
+
+/* Smooth hand-off between the welcome page and the app. */
+.landing { animation: landing-in 0.45s ease both; transition: opacity 0.5s ease, transform 0.5s ease; }
+.landing-leaving { opacity: 0; transform: scale(1.02); pointer-events: none; }
+@keyframes landing-in { from { opacity: 0; } to { opacity: 1; } }
+.app-entering { animation: app-in 0.55s ease both; }
+@keyframes app-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .landing, .app-entering { animation: none !important; }
+  .landing-leaving { transform: none; }
+}

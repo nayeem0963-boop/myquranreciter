@@ -107,13 +107,19 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const [libraryView, setLibraryView] = useState<LibraryView>("surahs");
   const isDarkTheme = readingPreferences.theme === "dark";
   const [showLanding, setShowLanding] = useState(shouldShowLanding);
+  const [leavingLanding, setLeavingLanding] = useState(false);
+  const [appEntering, setAppEntering] = useState(false);
+  const landingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (landingTimerRef.current !== null) clearTimeout(landingTimerRef.current);
+  }, []);
   const shellRef = useRef<HTMLDivElement>(null);
 
   // Keep the app (and its player) mounted under the welcome page, but out of reach of focus/AT.
   useEffect(() => {
     const shell = shellRef.current;
     if (!shell) return;
-    if (showLanding) shell.setAttribute("inert", "");
+    if (showLanding && !leavingLanding) shell.setAttribute("inert", "");
     else shell.removeAttribute("inert");
   }, [showLanding]);
 
@@ -176,7 +182,9 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   }, []);
 
   const enterApp = useCallback((options?: { surahId?: number; library?: boolean }) => {
+    let firstVisit = false;
     try {
+      firstVisit = localStorage.getItem(ENTERED_KEY) === null;
       localStorage.setItem(ENTERED_KEY, "1");
     } catch {
       // Private mode: the welcome page may show again next visit.
@@ -184,14 +192,25 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
     if (window.location.hash === "#welcome") {
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
-    setShowLanding(false);
+    // First-time visitors start in dark mode, matching the welcome page (changeable in Display).
+    if (firstVisit) readingPreferences.setTheme("dark");
+    // Crossfade: the app fades in underneath while the welcome page fades away, then unmounts.
+    setLeavingLanding(true);
+    setAppEntering(true);
+    if (landingTimerRef.current !== null) clearTimeout(landingTimerRef.current);
+    landingTimerRef.current = setTimeout(() => {
+      landingTimerRef.current = null;
+      setShowLanding(false);
+      setLeavingLanding(false);
+      setAppEntering(false);
+    }, 520);
     window.scrollTo(0, 0);
     if (options?.surahId) {
       setShowResumeBanner(false);
       playSurah(options.surahId);
     }
     if (options?.library) openLibrary("surahs", null);
-  }, [openLibrary, playSurah]);
+  }, [openLibrary, playSurah, readingPreferences]);
 
   const closeLibrary = useCallback(() => {
     setIsLibraryOpen(false);
@@ -253,7 +272,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      if (showLanding || event.repeat || target?.isContentEditable ||
+      if ((showLanding && !leavingLanding) || event.repeat || target?.isContentEditable ||
         target?.matches("input, textarea, select, [contenteditable='true']")) return;
       if (event.code === "Space") {
         if (target?.matches("button, a")) return;
@@ -277,15 +296,16 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
     <>
     {showLanding && (
       <Landing
+        leaving={leavingLanding}
         onEnter={enterApp}
         canInstall={!isStandalone && (isInstallable || isIOSSafari)}
         onInstall={() => {
-          if (!isInstallable) setShowLanding(false); // iOS help dialog lives inside the app
+          if (!isInstallable) enterApp(); // iOS help dialog lives inside the app
           void handleInstallClick();
         }}
       />
     )}
-    <div className="app-shell" dir="ltr" ref={shellRef}>
+    <div className={`app-shell${appEntering ? " app-entering" : ""}`} dir="ltr" ref={shellRef}>
       <header className="site-header">
         <button
           className="mobile-library-toggle"
@@ -298,7 +318,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             else openLibrary("surahs", event.currentTarget);
           }}
         >☰</button>
-        <a className="brand" href="#welcome" aria-label="My Quran Reciter home" onClick={(event) => { event.preventDefault(); setShowLanding(true); }}>
+        <a className="brand" href="#welcome" aria-label="My Quran Reciter home" onClick={(event) => { event.preventDefault(); setLeavingLanding(false); setShowLanding(true); }}>
           <span className="brand-mark" aria-hidden="true">۞</span>
           <span>my<span className="brand-accent">quran</span>reciter</span>
         </a>
