@@ -92,12 +92,12 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const displayToggleRef = useRef<HTMLElement | null>(null);
   const libraryReturnRef = useRef<HTMLElement | null>(null);
   const [libraryView, setLibraryView] = useState<LibraryView>("surahs");
-  const isDarkTheme = readingPreferences.theme === "dark";
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", isDarkTheme ? "dark" : "light");
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isDarkTheme ? "#141b17" : "#f6f7f2");
-  }, [isDarkTheme]);
+    // The app chrome always uses the royal blue & gold look.
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#070d1f");
+  }, []);
 
   const closeDisplay = useCallback(() => setIsDisplayOpen(false), []);
   const [showIOSInstallHelp, setShowIOSInstallHelp] = useState(false);
@@ -362,6 +362,12 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
           }}
           onOpenSurah={handleSelectSurah}
           onPlaySurah={(id) => { setView("reader"); playSurah(id); }}
+          onListen={() => {
+            setView("reader");
+            if (resumePosition) playVerse(resumePosition.surahId, resumePosition.ayahIndex);
+            else playSurah(state.surahId);
+          }}
+          onRead={goToReading}
         />
       )}
 
@@ -385,6 +391,10 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             </p>
           )}
           {isLoadingSurahs && <p className="sr-only" role="status">Loading Surah list…</p>}
+          <div className="reader-toggles" role="group" aria-label="Reading options">
+            <button type="button" aria-pressed={readingPreferences.showTranslation} onClick={readingPreferences.toggleTranslation}>Translation</button>
+            <button type="button" aria-pressed={readingPreferences.showTransliteration} onClick={readingPreferences.toggleTransliteration}>Transliteration</button>
+          </div>
           <QuranReader
             surah={currentSurah}
             verses={verses}
@@ -402,6 +412,14 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             isLoadingWords={isLoadingWords}
             wordDataNotice={wordDataNotice}
           />
+          <nav className="surah-pager" aria-label="Surah navigation">
+            <button type="button" disabled={state.surahId <= 1} onClick={() => { selectSurah(state.surahId - 1); window.scrollTo({ top: 0 }); }}>
+              ‹ Previous Surah
+            </button>
+            <button type="button" disabled={state.surahId >= surahs.length} onClick={() => { selectSurah(state.surahId + 1); window.scrollTo({ top: 0 }); }}>
+              Next Surah ›
+            </button>
+          </nav>
         </div>
       </main>
 

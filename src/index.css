@@ -3509,6 +3509,7 @@ button {
   }
 }
 
+
 [hidden]{display:none!important}
 
 /* Home landing page: dark gold Surah list */
@@ -3568,3 +3569,285 @@ button {
   background: #14224a; color: var(--gold); cursor: pointer; font-size: 0.9rem;
 }
 .home-empty { text-align: center; color: #9aa6c0; padding: 24px; }
+
+/* ==========================================================================
+   Royal blue & gold theme
+   ========================================================================== */
+:root {
+  --navy-0: #070d1f;
+  --navy-1: #0b1530;
+  --navy-2: #0f1d3d;
+  --gold: #d4af37;
+  --gold-light: #f5d77f;
+  --gold-line: rgba(212, 175, 55, 0.32);
+  --ivory: #f6efdc;
+  --ivory-dim: #a9b2c8;
+  --gold-glow: 0 0 14px rgba(212, 175, 55, 0.35);
+}
+[hidden] { display: none !important; }
+
+html:root:root,
+html:root:root body {
+  color: var(--ivory);
+  background: var(--navy-0);
+  --green: var(--gold);
+  --green-dark: var(--gold-light);
+  --green-deep: var(--gold);
+  --mint: rgba(212, 175, 55, 0.14);
+  --muted: var(--ivory-dim);
+  --line: var(--gold-line);
+  --panel: var(--navy-1);
+}
+html:root:root body { background: radial-gradient(circle at 50% -10%, var(--navy-2) 0%, var(--navy-0) 65%) fixed; }
+
+/* Surfaces */
+html:root:root .app-shell { background: transparent; }
+html:root:root .site-header,
+html:root:root .panel,
+html:root:root .surah-panel,
+html:root:root .sheet-panel,
+html:root:root .bookmark-row,
+html:root:root .install-help-dialog,
+html:root:root .resume-banner,
+html:root:root .data-notice {
+  background: rgba(11, 21, 48, 0.88);
+  border-color: var(--gold-line);
+  color: var(--ivory);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+html:root:root .site-header { border-bottom: 1px solid var(--gold-line); }
+html:root:root .brand,
+html:root:root .brand-accent,
+html:root:root .panel-heading h2,
+html:root:root .surah-title,
+html:root:root .bookmark-content strong { color: var(--gold-light); }
+html:root:root .header-caption,
+html:root:root .surah-meta,
+html:root:root .bookmark-content span,
+html:root:root .keyboard-hint,
+html:root:root .library-note { color: var(--ivory-dim); }
+
+/* Surah list (library drawer) */
+html:root:root .surah-row { background: transparent; border-color: var(--gold-line); color: var(--ivory); }
+html:root:root .surah-row:hover,
+html:root:root .surah-row.selected { background: rgba(212, 175, 55, 0.1); box-shadow: inset 3px 0 0 var(--gold); }
+html:root:root .surah-number,
+html:root:root .surah-row.selected .surah-number {
+  color: var(--gold-light); background: linear-gradient(160deg, #14224a, #0a1330);
+  border: 1px solid var(--gold); box-shadow: none;
+}
+html:root:root .surah-arabic { color: var(--gold); }
+html:root:root .search-field input,
+html:root:root .library-tabs,
+html:root:root .reciter-select,
+html:root:root select {
+  background: var(--navy-0); color: var(--ivory); border-color: var(--gold-line);
+}
+html:root:root .library-tabs button[aria-selected="true"],
+html:root:root .pill.active,
+html:root:root .pill-button.active,
+html:root:root .segment[aria-checked="true"] { background: var(--gold); color: var(--navy-0); }
+html:root:root .count-pill { background: rgba(212, 175, 55, 0.16); color: var(--gold-light); }
+
+/* Buttons */
+html:root:root .play-button,
+html:root:root .listen-surah-button,
+html:root:root .full-player-play,
+html:root:root .resume-action {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: var(--navy-0); border: 0; box-shadow: var(--gold-glow);
+}
+html:root:root .icon-button,
+html:root:root .pill-button,
+html:root:root .display-settings-button,
+html:root:root .install-app-button,
+html:root:root .mobile-library-toggle,
+html:root:root .sheet-close,
+html:root:root .drawer-close-button {
+  background: transparent; color: var(--gold); border: 1px solid var(--gold-line);
+}
+html:root:root .icon-button:hover,
+html:root:root .pill-button:hover,
+html:root:root .display-settings-button:hover { box-shadow: var(--gold-glow); border-color: var(--gold); }
+html:root:root .switch-row[aria-checked="true"] .switch-track { background: var(--gold); }
+
+/* Mini player */
+html:root:root .player-bar {
+  background: linear-gradient(180deg, rgba(15, 29, 61, 0.96), rgba(7, 13, 31, 0.98));
+  border-top: 1px solid var(--gold);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+  color: var(--ivory);
+}
+html:root:root .player-art { background: rgba(212, 175, 55, 0.12); color: var(--gold); border: 1px solid var(--gold-line); }
+html:root:root .now-playing-copy span { color: var(--ivory-dim); }
+html:root:root .progress-slider {
+  background: linear-gradient(to right, var(--gold) var(--progress), rgba(255, 255, 255, 0.16) var(--progress));
+}
+html:root:root .progress-slider::-webkit-slider-thumb,
+html:root:root .volume-control input::-webkit-slider-thumb { background: var(--gold-light); }
+html:root:root .progress-slider::-moz-range-thumb { background: var(--gold-light); border: 0; }
+html:root:root .progress-row,
+html:root:root .volume-control { color: var(--ivory-dim); }
+
+/* Bottom navigation */
+@media (max-width: 767px) {
+  html:root:root .bottom-nav {
+    background: rgba(7, 13, 31, 0.94);
+    border-top: 1px solid var(--gold-line);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+  html:root:root .bottom-nav-item { color: var(--ivory-dim); }
+  html:root:root .bottom-nav-item.active { color: var(--gold-light); }
+  html:root:root .bottom-nav-item.active .bottom-nav-icon {
+    background: rgba(212, 175, 55, 0.16); box-shadow: inset 0 0 0 1px var(--gold-line), var(--gold-glow);
+  }
+  html:root:root .bottom-nav-badge { background: var(--gold); color: var(--navy-0); }
+  /* Keep content clear of the fixed mini-player + nav. */
+  html:root:root .app-shell { padding-bottom: calc(var(--nav-h, 60px) + 120px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Reader: royal blue with ivory text and gold accents */
+html:root:root .reader-panel,
+html:root:root .reader-panel.reading-theme-light,
+html:root:root .reader-panel.reading-theme-dark {
+  background: linear-gradient(180deg, var(--navy-1), var(--navy-0));
+  border-color: var(--gold-line); color: var(--ivory);
+}
+html:root:root .reader-panel .surah-cover {
+  background: radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.16), transparent 62%), linear-gradient(135deg, #12224a, #0b1530);
+  border-color: var(--gold-line);
+}
+html:root:root .reader-panel .cover-arabic,
+html:root:root .reader-panel .surah-cover h1,
+html:root:root .reader-panel .bismillah { color: var(--gold-light); }
+html:root:root .reader-panel .cover-meaning,
+html:root:root .reader-panel .eyebrow,
+html:root:root .reader-panel .revelation-tag { color: var(--ivory-dim); background: transparent; border-color: var(--gold-line); }
+html:root:root .reader-panel .verse-card-row { border-color: var(--gold-line); background: transparent; }
+html:root:root .reader-panel .verse-card-row:hover:not(.active),
+html:root:root .reader-panel .verse-card-row.active { background: rgba(212, 175, 55, 0.09); box-shadow: inset 3px 0 0 var(--gold); }
+html:root:root .reader-panel .verse-arabic { color: var(--ivory); line-height: 2.1; }
+html:root:root .reader-panel .verse-translation { color: #d9dff0; line-height: 1.65; }
+html:root:root .reader-panel .verse-transliteration { color: var(--gold-light); opacity: 0.85; }
+html:root:root .reader-panel .verse-marker,
+html:root:root .reader-panel .verse-play,
+html:root:root .reader-panel .bookmark-toggle,
+html:root:root .reader-panel .tafsir-trigger {
+  background: transparent; color: var(--gold); border: 1px solid var(--gold-line);
+}
+html:root:root .reader-panel .verse-marker { font-family: Georgia, serif; }
+html:root:root .reader-panel .bookmark-toggle.bookmarked,
+html:root:root .reader-panel .verse-play.playing { background: var(--gold); color: var(--navy-0); box-shadow: var(--gold-glow); }
+html:root:root .reader-panel .word-token { color: var(--ivory); }
+/* Ivory paper alternative */
+html:root:root .reader-panel.reading-theme-warm {
+  background: #f6efdc; color: #1b2447; border-color: var(--gold);
+}
+html:root:root .reader-panel.reading-theme-warm .surah-cover { background: #efe4c6; border-color: var(--gold); }
+html:root:root .reader-panel.reading-theme-warm .cover-arabic,
+html:root:root .reader-panel.reading-theme-warm .surah-cover h1,
+html:root:root .reader-panel.reading-theme-warm .bismillah { color: #8a6a12; }
+html:root:root .reader-panel.reading-theme-warm .verse-arabic { color: #121a3a; }
+html:root:root .reader-panel.reading-theme-warm .verse-translation,
+html:root:root .reader-panel.reading-theme-warm .cover-meaning,
+html:root:root .reader-panel.reading-theme-warm .eyebrow { color: #4a5272; }
+html:root:root .reader-panel.reading-theme-warm .verse-transliteration { color: #8a6a12; }
+
+/* Reader quick toggles + surah pager */
+.reader-toggles { display: flex; gap: 8px; margin: 0 0 12px; flex-wrap: wrap; }
+.reader-toggles button,
+.surah-pager button {
+  min-height: 40px; padding: 0 16px; border-radius: 9999px; font: inherit; cursor: pointer;
+  background: transparent; color: var(--gold); border: 1px solid var(--gold-line);
+}
+.reader-toggles button[aria-pressed="true"] { background: var(--gold); color: var(--navy-0); border-color: var(--gold); }
+.surah-pager { display: flex; justify-content: space-between; gap: 12px; margin: 16px 0 8px; }
+.surah-pager button { flex: 1; }
+.surah-pager button:disabled { opacity: 0.35; cursor: default; }
+.surah-pager button:not(:disabled):hover { box-shadow: var(--gold-glow); border-color: var(--gold); }
+
+/* Home landing page */
+.home-page { min-height: 100dvh; color: var(--ivory); padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+.home-hero {
+  min-height: 88dvh; display: flex; flex-direction: column; gap: 18px; padding: 20px 20px 28px;
+  max-width: 640px; margin: 0 auto; text-align: center;
+  background: radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.14), transparent 60%);
+}
+.home-topbar { display: flex; align-items: center; gap: 12px; text-align: left; }
+.home-logo {
+  flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  border: 1.5px solid var(--gold); color: var(--gold-light); font-size: 1.5rem; background: rgba(212, 175, 55, 0.08);
+  box-shadow: var(--gold-glow);
+}
+.home-title { flex: 1; min-width: 0; }
+.home-title h1 { margin: 0; font-family: Georgia, serif; font-size: 1.15rem; letter-spacing: 0.12em; color: var(--gold); }
+.home-title p { margin: 2px 0 0; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--gold-light); opacity: 0.8; }
+.home-icon-btn {
+  flex: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--gold-line); background: transparent; color: var(--gold); font-size: 1.1rem;
+}
+.home-bismillah { margin: 18px 0 0; font-size: 2.1rem; color: var(--gold-light); line-height: 1.8; }
+.home-lead { margin: 0; color: var(--ivory-dim); }
+.home-search { display: flex; align-items: center; gap: 10px; padding: 0 16px; border-radius: 9999px; border: 1px solid var(--gold-line); background: rgba(11, 21, 48, 0.8); color: var(--gold); }
+.home-search input { flex: 1; min-width: 0; min-height: 48px; border: 0; background: transparent; color: var(--ivory); font: inherit; outline: none; }
+.home-entries { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.home-entry {
+  display: grid; justify-items: center; gap: 4px; padding: 18px 12px; border-radius: 20px; cursor: pointer; font: inherit;
+  color: var(--ivory); border: 1px solid var(--gold-line); background: linear-gradient(160deg, var(--navy-2), var(--navy-1));
+}
+.home-entry:hover, .home-entry:active { border-color: var(--gold); box-shadow: var(--gold-glow); }
+.home-entry strong { color: var(--gold-light); font-size: 1.1rem; }
+.home-entry > span:last-child { font-size: 0.8rem; color: var(--ivory-dim); }
+.home-entry-icon { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--gold); border: 1px solid var(--gold); }
+.home-resume { min-height: 48px; border-radius: 14px; border: 1px solid var(--gold); background: rgba(212, 175, 55, 0.12); color: var(--gold-light); font: inherit; cursor: pointer; }
+.home-featured { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.home-chip { padding: 8px 14px; border-radius: 9999px; border: 1px solid var(--gold-line); background: rgba(212, 175, 55, 0.08); color: var(--gold-light); font: inherit; cursor: pointer; }
+.home-chip:hover { border-color: var(--gold); box-shadow: var(--gold-glow); }
+.home-scroll-cue { margin-top: auto; background: transparent; border: 0; color: var(--gold); font: inherit; cursor: pointer; padding: 12px; letter-spacing: 0.08em; }
+
+.home-list-section { max-width: 640px; margin: 0 auto; border-top: 1px solid var(--gold); scroll-margin-top: 0; }
+.home-section-bar {
+  position: sticky; top: 0; z-index: 4; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  padding: 16px; background: rgba(7, 13, 31, 0.94); border-bottom: 1px solid var(--gold-line); backdrop-filter: blur(10px);
+}
+.home-eyebrow { margin: 0; font-size: 0.68rem; letter-spacing: 0.25em; color: var(--gold); }
+.home-section-bar h2 { margin: 2px 0 0; font-family: Georgia, serif; color: var(--gold-light); }
+.home-view-toggle { display: flex; padding: 3px; border-radius: 9999px; border: 1px solid var(--gold-line); background: var(--navy-1); }
+.home-view-toggle button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 9999px; background: transparent; color: var(--ivory-dim); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.home-view-toggle button.active { background: var(--gold); color: var(--navy-0); font-weight: 600; }
+.home-cards { list-style: none; margin: 0; padding: 16px; display: grid; gap: 14px; }
+.home-card {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px;
+  padding: 18px 16px; border-radius: 22px; border: 1px solid var(--gold-line);
+  background: linear-gradient(160deg, var(--navy-2), #080e1f); cursor: pointer; color: inherit;
+}
+.home-card:hover, .home-card:focus-visible { border-color: var(--gold); box-shadow: var(--gold-glow); outline: none; }
+.home-card-num {
+  width: 54px; height: 54px; border-radius: 14px; border: 1px solid var(--gold); display: grid; place-items: center;
+  color: var(--gold-light); font-family: Georgia, serif; font-weight: 700; background: linear-gradient(160deg, #14224a, #0a1330);
+}
+.home-card-main { min-width: 0; display: grid; gap: 4px; }
+.home-card-main strong { font-size: 1.05rem; overflow-wrap: anywhere; }
+.home-card-main > span { color: var(--ivory-dim); font-size: 0.88rem; }
+.home-card-side { display: grid; justify-items: end; gap: 10px; }
+.home-card-ar { color: var(--gold); font-size: 1.5rem; line-height: 1.4; }
+.home-play {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gold); background: rgba(212, 175, 55, 0.1);
+  color: var(--gold-light); cursor: pointer; font-size: 0.85rem;
+}
+.home-play:hover, .home-play:active { box-shadow: var(--gold-glow); background: rgba(212, 175, 55, 0.22); }
+.home-empty { text-align: center; color: var(--ivory-dim); padding: 24px; }
+
+html:root:root .mobile-options-toggle,
+html:root:root .player-bar .icon-button { background: transparent; color: var(--gold); border: 1px solid var(--gold-line); border-radius: 12px; }
+html:root:root .reader-panel .verse-card-row.active,
+html:root:root .reader-panel .verse-card-row:hover:not(.active) { background: rgba(212, 175, 55, 0.11); }
+html:root:root .reader-panel .verse-play,
+html:root:root .reader-panel .bookmark-toggle { border-radius: 50%; }
+@media (max-width: 767px) {
+  html:root:root .bottom-nav { grid-template-columns: repeat(5, 1fr); padding-left: 4px; padding-right: 4px; }
+  html:root:root .bottom-nav-icon { width: 46px; }
+}
+.home-hero { min-height: calc(100dvh - 230px); }
