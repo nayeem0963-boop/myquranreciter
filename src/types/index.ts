@@ -34,6 +34,17 @@ export interface Reciter {
   name: string;
   country: string;
   audioDirectory: string;
+  /** Quran.com chapter-recitation id, used to play one continuous file per surah. */
+  quranComRecitationId?: number;
+}
+
+export interface SurahAudio {
+  surahId: number;
+  reciterId: string;
+  url: string;
+  /** Start/end of each verse inside the surah file, in milliseconds, indexed by verse index. */
+  startsMs: number[];
+  endsMs: number[];
 }
 
 export interface PlaybackState {
