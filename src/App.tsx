@@ -93,11 +93,15 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const libraryReturnRef = useRef<HTMLElement | null>(null);
   const [libraryView, setLibraryView] = useState<LibraryView>("surahs");
 
+  const theme = readingPreferences.theme;
   useEffect(() => {
-    // The app chrome always uses the royal blue & gold look.
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#070d1f");
-  }, []);
+    const root = document.documentElement;
+    root.setAttribute("data-theme", theme);
+    root.classList.remove("theme-dark", "theme-light", "theme-warm");
+    root.classList.add(`theme-${theme}`);
+    const color = theme === "dark" ? "#070d1f" : theme === "light" ? "#f8f9fa" : "#f4ecd8";
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", color);
+  }, [theme]);
 
   const closeDisplay = useCallback(() => setIsDisplayOpen(false), []);
   const [showIOSInstallHelp, setShowIOSInstallHelp] = useState(false);
