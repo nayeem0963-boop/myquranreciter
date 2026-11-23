@@ -103,6 +103,10 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
   const audioRef = useRef<HTMLAudioElement>(null);
   const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAyahIndex = useRef<number | null>(state.ayahIndex);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCountRef = useRef(0);
+  const prefetchRef = useRef<HTMLAudioElement | null>(null);
+  const MAX_PLAY_RETRIES = 4;
   const currentReciter = reciters.find((reciter) => reciter.id === state.currentReciterId) ?? reciters[0];
   const currentSurah = surahs.find((surah) => surah.number === state.surahId);
   const versesWithWords = useMemo(() => verses.map((verse) => ({
@@ -196,48 +200,91 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     return () => controller.abort();
   }, [state.surahId]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!trackUrl) {
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-    } else if (audio.src !== trackUrl) {
-      audio.src = trackUrl;
-      audio.load();
+  const clearRetry = useCallback(() => {
+    if (retryTimerRef.current !== null) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
     }
+  }, []);
 
-    return () => {
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-    };
-  }, [trackUrl]);
+  useEffect(() => () => clearRetry(), [clearRetry]);
+
+  // Start playback; on transient failures (flaky network, background throttling) reload and
+  // retry with backoff instead of silently stopping the recitation.
+  const startPlayback = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    clearRetry();
+    audio.play().then(() => {
+      retryCountRef.current = 0;
+    }).catch((error: unknown) => {
+      // AbortError: a newer load/pause superseded this call, which is expected.
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      if (retryCountRef.current < MAX_PLAY_RETRIES) {
+        const delay = 700 * 2 ** retryCountRef.current;
+        retryCountRef.current += 1;
+        reportDataNotice("Connection hiccup, retrying audio…");
+        retryTimerRef.current = setTimeout(() => {
+          retryTimerRef.current = null;
+          const current = audioRef.current;
+          if (!current) return;
+          const keepTime = current.currentTime;
+          current.load();
+          if (keepTime > 0) current.currentTime = keepTime;
+          startPlayback();
+        }, delay);
+        return;
+      }
+      retryCountRef.current = 0;
+      setState((current) => ({ ...current, isPlaying: false }));
+      reportDataNotice("Audio could not be played. Check your connection and try again.");
+    });
+  }, [clearRetry, reportDataNotice]);
+
+  // Source management. The element is never reset between verses: replacing `src` on the same
+  // element keeps it "active" so mobile browsers still allow playback with the screen locked.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (!trackUrl) return;
+    if (audio.src !== trackUrl) {
+      audio.src = trackUrl;
+    }
+    // Warm the cache with the next verse so the transition does not depend on the network.
+    const nextVerse = versesWithWords[state.ayahIndex + 1];
+    if (nextVerse) {
+      const prefetch = prefetchRef.current ?? new Audio();
+      prefetch.preload = "auto";
+      prefetch.src = getVerseAudioUrl(currentReciter, state.surahId, nextVerse.numberInSurah);
+      prefetchRef.current = prefetch;
+    }
+  }, [trackUrl, state.ayahIndex, state.surahId, currentReciter, versesWithWords]);
+
+  useEffect(() => () => {
+    const audio = audioRef.current;
+    if (audio) audio.pause();
+    prefetchRef.current = null;
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    let isCurrentEffect = true;
     audio.playbackRate = state.playbackRate;
     audio.volume = state.isMuted ? 0 : state.volume;
+  }, [state.playbackRate, state.volume, state.isMuted, trackUrl]);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
     if (state.isPlaying && trackUrl) {
-      audio.play().catch(() => {
-        if (!isCurrentEffect) return;
-        setState((current) => ({ ...current, isPlaying: false }));
-        reportDataNotice("Audio could not be played. Check your connection and try again.");
-      });
+      if (audio.src !== trackUrl) audio.src = trackUrl;
+      if (audio.paused || audio.ended) startPlayback();
     } else {
+      clearRetry();
+      retryCountRef.current = 0;
       audio.pause();
     }
-
-    return () => {
-      isCurrentEffect = false;
-    };
-  }, [trackUrl, state.isPlaying, state.playbackRate, state.volume, state.isMuted, reportDataNotice]);
+  }, [trackUrl, state.isPlaying, startPlayback, clearRetry]);
 
   const switchToSurah = useCallback((surahId: number, ayahIndex: number, shouldPlay: boolean) => {
     clearPendingPause();
@@ -322,10 +369,7 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
       const audio = audioRef.current;
       if (audio) {
         audio.currentTime = 0;
-        audio.play().catch(() => {
-          setState((current) => ({ ...current, isPlaying: false }));
-          reportDataNotice("Audio could not be played. Check your connection and try again.");
-        });
+        startPlayback();
       }
       return;
     }
@@ -336,8 +380,20 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
       });
       return;
     }
+    const nextAyah = versesWithWords[state.ayahIndex + 1];
+    const audio = audioRef.current;
+    if (state.recitationPauseSeconds === 0 && nextAyah && audio) {
+      // Start the next verse synchronously inside the `ended` event: the most reliable way to
+      // keep playing in the background / with the screen locked.
+      clearPendingPause();
+      audio.src = getVerseAudioUrl(currentReciter, state.surahId, nextAyah.numberInSurah);
+      startPlayback();
+      setState((current) => ({ ...current, ayahIndex: current.ayahIndex + 1, currentTime: 0, duration: 0 }));
+      return;
+    }
     scheduleTransition(() => moveVerse(1));
   }, [
+    currentReciter, startPlayback, versesWithWords,
     clearPendingPause, moveVerse, reportDataNotice, state.abEndIndex, state.abLoopEnabled, state.ayahIndex,
     state.recitationPauseSeconds, state.repeatMode, state.surahId, switchToSurah, verses.length,
   ]);
@@ -430,6 +486,23 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     moveVerse(-1);
   }, [clearPendingPause, moveVerse]);
 
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    const title = currentSurah
+      ? `${currentSurah.nameTransliteration} · Verse ${activeVerse?.numberInSurah ?? state.ayahIndex + 1}`
+      : "Quran recitation";
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title, artist: currentReciter.name, album: "My Quran Reciter" });
+      navigator.mediaSession.playbackState = state.isPlaying ? "playing" : "paused";
+      navigator.mediaSession.setActionHandler("play", () => setState((c) => ({ ...c, isPlaying: true })));
+      navigator.mediaSession.setActionHandler("pause", () => setState((c) => ({ ...c, isPlaying: false })));
+      navigator.mediaSession.setActionHandler("nexttrack", () => nextVerse());
+      navigator.mediaSession.setActionHandler("previoustrack", () => previousVerse());
+    } catch (error) {
+      console.error("Media Session unavailable.", error);
+    }
+  }, [currentSurah, activeVerse, state.ayahIndex, state.isPlaying, currentReciter, nextVerse, previousVerse]);
+
   const value = useMemo<AudioPlayerValue>(() => ({
     state,
     surahs,
@@ -485,6 +558,13 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
           }));
         }}
         onEnded={onEnded}
+        onPlaying={() => {
+          retryCountRef.current = 0;
+          setDataNotice((n) => (n.startsWith("Connection hiccup") ? "" : n));
+        }}
+        onError={() => {
+          if (state.isPlaying && trackUrl) startPlayback();
+        }}
         onPlay={() => setState((current) => ({ ...current, isPlaying: true }))}
       />
     </AudioPlayerContext.Provider>
