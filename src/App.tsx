@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AudioPlayerBar from "./components/AudioPlayerBar";
 import BottomNav from "./components/BottomNav";
+import Landing from "./components/Landing";
 import DisplaySettingsSheet from "./components/DisplaySettingsSheet";
 import QuranReader from "./components/QuranReader";
 import ReciterSelector from "./components/ReciterSelector";
@@ -38,6 +39,20 @@ function readSavedPosition(): SavedPosition | null {
   } catch (error) {
     console.error("Unable to read the last Quran reading position.", error);
     return null;
+  }
+}
+
+const ENTERED_KEY = "myquranreciter.entered";
+
+/** Show the welcome page to first-time browser visitors only (never inside an installed app). */
+function shouldShowLanding(): boolean {
+  try {
+    if (window.location.hash === "#welcome") return true;
+    const standalone = window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    return !standalone && localStorage.getItem(ENTERED_KEY) === null;
+  } catch {
+    return false;
   }
 }
 
@@ -91,6 +106,16 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const libraryReturnRef = useRef<HTMLElement | null>(null);
   const [libraryView, setLibraryView] = useState<LibraryView>("surahs");
   const isDarkTheme = readingPreferences.theme === "dark";
+  const [showLanding, setShowLanding] = useState(shouldShowLanding);
+  const shellRef = useRef<HTMLDivElement>(null);
+
+  // Keep the app (and its player) mounted under the welcome page, but out of reach of focus/AT.
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) return;
+    if (showLanding) shell.setAttribute("inert", "");
+    else shell.removeAttribute("inert");
+  }, [showLanding]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", isDarkTheme ? "dark" : "light");
@@ -149,6 +174,24 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
     if (active) active.scrollIntoView({ behavior: "smooth", block: "center" });
     else window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  const enterApp = useCallback((options?: { surahId?: number; library?: boolean }) => {
+    try {
+      localStorage.setItem(ENTERED_KEY, "1");
+    } catch {
+      // Private mode: the welcome page may show again next visit.
+    }
+    if (window.location.hash === "#welcome") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    setShowLanding(false);
+    window.scrollTo(0, 0);
+    if (options?.surahId) {
+      setShowResumeBanner(false);
+      playSurah(options.surahId);
+    }
+    if (options?.library) openLibrary("surahs", null);
+  }, [openLibrary, playSurah]);
 
   const closeLibrary = useCallback(() => {
     setIsLibraryOpen(false);
@@ -210,7 +253,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      if (event.repeat || target?.isContentEditable ||
+      if (showLanding || event.repeat || target?.isContentEditable ||
         target?.matches("input, textarea, select, [contenteditable='true']")) return;
       if (event.code === "Space") {
         if (target?.matches("button, a")) return;
@@ -228,10 +271,21 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [nextVerse, previousVerse, toggleMute, togglePlayback]);
+  }, [nextVerse, previousVerse, showLanding, toggleMute, togglePlayback]);
 
   return (
-    <div className="app-shell" dir="ltr">
+    <>
+    {showLanding && (
+      <Landing
+        onEnter={enterApp}
+        canInstall={!isStandalone && (isInstallable || isIOSSafari)}
+        onInstall={() => {
+          if (!isInstallable) setShowLanding(false); // iOS help dialog lives inside the app
+          void handleInstallClick();
+        }}
+      />
+    )}
+    <div className="app-shell" dir="ltr" ref={shellRef}>
       <header className="site-header">
         <button
           className="mobile-library-toggle"
@@ -244,7 +298,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             else openLibrary("surahs", event.currentTarget);
           }}
         >☰</button>
-        <a className="brand" href="#" aria-label="My Quran Reciter home">
+        <a className="brand" href="#welcome" aria-label="My Quran Reciter home" onClick={(event) => { event.preventDefault(); setShowLanding(true); }}>
           <span className="brand-mark" aria-hidden="true">۞</span>
           <span>my<span className="brand-accent">quran</span>reciter</span>
         </a>
@@ -400,6 +454,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
       />
       <p className="keyboard-hint"><kbd>Space</kbd> play · <kbd>←</kbd>/<kbd>→</kbd> verse · <kbd>M</kbd> mute</p>
     </div>
+    </>
   );
 }
 

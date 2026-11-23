@@ -1,0 +1,297 @@
+/* Welcome page: always the royal navy & gold look, regardless of reading theme. */
+.landing {
+  --l-gold: #d4af37;
+  --l-gold-soft: #f0c24d;
+  --l-gold-foil: linear-gradient(135deg, #bf953f 0%, #fcf6ba 28%, #b38728 52%, #fbf5b7 76%, #aa771c 100%);
+  --l-navy-950: #060b18;
+  --l-navy-900: #0a1128;
+  --l-navy-800: #101f42;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: #e9e5d6;
+  font-family: "DM Sans", sans-serif;
+  background-color: var(--l-navy-950);
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.14) 0%, transparent 55%),
+    radial-gradient(circle at 100% 45%, rgba(30, 60, 120, 0.3) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L50 30L80 40L50 50L40 80L30 50L0 40L30 30Z' fill='%23d4af37' fill-opacity='0.035'/%3E%3Ccircle cx='40' cy='40' r='18' fill='none' stroke='%23d4af37' stroke-opacity='0.03'/%3E%3C/svg%3E");
+  background-attachment: local;
+  -webkit-text-size-adjust: 100%;
+}
+
+.landing * { box-sizing: border-box; }
+.landing button { font: inherit; cursor: pointer; }
+.landing h1, .landing h2, .landing h3 { margin: 0; font-family: "Cinzel", "DM Sans", serif; color: #fff; }
+
+.landing-gold,
+.landing-brand-name {
+  background: var(--l-gold-foil);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Header */
+.landing-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+  backdrop-filter: blur(16px);
+  background: rgba(6, 11, 24, 0.82);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.landing-brand { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; min-width: 0; }
+.landing-brand-mark {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(212, 175, 55, 0.65);
+  border-radius: 50%;
+  color: var(--l-gold-soft);
+  background: linear-gradient(135deg, var(--l-navy-800), var(--l-navy-950));
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
+}
+.landing-brand > span:last-child { display: grid; min-width: 0; }
+.landing-brand-name { font-family: "Cinzel", serif; font-weight: 700; font-size: 1.05rem; letter-spacing: 0.06em; line-height: 1.1; }
+.landing-brand-tag { font-size: 0.6rem; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(240, 194, 77, 0.7); }
+
+.landing-pill {
+  flex: none;
+  min-height: 40px;
+  padding: 0 16px;
+  color: var(--l-gold-soft);
+  background: rgba(10, 17, 40, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Hero */
+.landing-hero { padding: 36px 20px 44px; text-align: center; max-width: 880px; margin: 0 auto; }
+
+.landing-arch {
+  width: 150px;
+  height: 200px;
+  margin: 0 auto 28px;
+  padding: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  border-radius: 999px 999px 8px 8px;
+  background: linear-gradient(180deg, rgba(16, 31, 66, 0.95), rgba(6, 11, 24, 0.95));
+  box-shadow: 0 0 34px rgba(212, 175, 55, 0.25);
+}
+.landing-arch-inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 999px 999px 4px 4px;
+}
+.landing-arch-arabic {
+  font-family: "Scheherazade New", "Amiri", serif;
+  font-size: 2rem;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--l-gold-soft);
+  text-shadow: 0 0 18px rgba(212, 175, 55, 0.4);
+}
+.landing-arch-sub { font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(240, 194, 77, 0.8); }
+.landing-arch-stars { margin-top: 6px; font-size: 0.7rem; color: rgba(212, 175, 55, 0.45); }
+
+.landing-hero h1 { font-size: clamp(1.7rem, 7vw, 3.1rem); font-weight: 700; line-height: 1.2; letter-spacing: 0.01em; }
+.landing-hero h1 .landing-gold { display: block; margin-top: 4px; }
+.landing-lead { max-width: 560px; margin: 18px auto 28px; font-size: 1rem; line-height: 1.65; color: #b9c2d8; font-weight: 300; }
+
+.landing-cta { display: grid; gap: 12px; max-width: 420px; margin: 0 auto; }
+
+.landing-btn {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.landing-btn:active { transform: scale(0.98); }
+.landing-btn-gold {
+  color: var(--l-navy-950);
+  border-color: transparent;
+  background: var(--l-gold-foil);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.3);
+}
+.landing-btn-navy { color: #f6e7b3; background: linear-gradient(90deg, var(--l-navy-900), var(--l-navy-800)); }
+.landing-btn-ghost { color: var(--l-gold-soft); background: rgba(10, 17, 40, 0.75); border-color: rgba(212, 175, 55, 0.4); }
+.landing-btn:focus-visible, .landing-pill:focus-visible, .landing-surah:focus-visible, .landing-reciter:focus-visible, .landing-link:focus-visible {
+  outline: 2px solid var(--l-gold-soft);
+  outline-offset: 3px;
+}
+
+.landing-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px 12px;
+  margin: 44px 0 0;
+  padding-top: 32px;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+}
+.landing-stats div { display: grid; gap: 4px; }
+.landing-stats dt { margin: 0; font-family: "Cinzel", serif; font-size: 1.3rem; font-weight: 700; color: var(--l-gold-soft); }
+.landing-stats dd { margin: 0; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: #8b96b3; }
+
+/* Sections */
+.landing-section { padding: 48px 20px; max-width: 1080px; margin: 0 auto; }
+.landing-section-alt { max-width: none; background: rgba(6, 11, 24, 0.55); border-block: 1px solid rgba(212, 175, 55, 0.12); }
+.landing-section-alt > * { max-width: 1040px; margin-inline: auto; }
+.landing-section { text-align: center; }
+.landing-eyebrow { margin: 0 0 6px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--l-gold-soft); }
+.landing-section h2 { font-size: clamp(1.5rem, 5.5vw, 2.4rem); }
+.landing-sub { margin: 10px auto 26px; max-width: 460px; color: #9aa6c2; font-size: 0.9rem; font-weight: 300; }
+
+.landing-surah-grid, .landing-feature-grid, .landing-reciter-grid { display: grid; gap: 14px; margin-top: 26px; text-align: left; }
+.landing-sub + .landing-surah-grid, .landing-sub + .landing-reciter-grid { margin-top: 0; }
+
+.landing-surah {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 84px;
+  padding: 14px 16px;
+  color: inherit;
+  text-align: left;
+  background: rgba(10, 17, 40, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 18px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.landing-surah:hover { border-color: rgba(240, 194, 77, 0.8); box-shadow: 0 0 22px rgba(212, 175, 55, 0.2); }
+.landing-surah-number {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--l-navy-800), var(--l-navy-950));
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  color: var(--l-gold-soft);
+}
+.landing-surah-text { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.landing-surah-text strong { color: #fff; font-size: 1rem; }
+.landing-surah-text small { color: #8b96b3; font-size: 0.78rem; }
+.landing-surah-side { display: grid; justify-items: end; gap: 6px; }
+.landing-surah-arabic { font-family: "Scheherazade New", "Amiri", serif; font-size: 1.35rem; font-weight: 700; color: #f3d37a; line-height: 1.2; }
+.landing-surah-play {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 50%;
+  background: var(--l-navy-800);
+  color: var(--l-gold-soft);
+  font-size: 0.7rem;
+}
+
+.landing-feature {
+  padding: 22px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(16, 31, 66, 0.8), rgba(6, 11, 24, 0.9));
+}
+.landing-feature-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 16px;
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--l-gold-soft);
+  font-size: 1.4rem;
+  font-family: "Scheherazade New", "Amiri", serif;
+}
+.landing-feature h3 { margin-bottom: 8px; font-size: 1rem; line-height: 1.3; }
+.landing-feature p { margin: 0; font-size: 0.85rem; line-height: 1.6; color: #9aa6c2; font-weight: 300; }
+
+.landing-reciter {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 20px 14px;
+  color: inherit;
+  text-align: center;
+  background: rgba(10, 17, 40, 0.55);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 18px;
+}
+.landing-reciter.selected { border-color: var(--l-gold-soft); box-shadow: 0 0 24px rgba(212, 175, 55, 0.25); }
+.landing-reciter-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+  border: 1px solid rgba(240, 194, 77, 0.5);
+  border-radius: 50%;
+  background: var(--l-navy-800);
+  color: #f3d37a;
+  font-size: 1.3rem;
+}
+.landing-reciter strong { color: #fff; font-size: 0.92rem; }
+.landing-reciter small { color: #8b96b3; font-size: 0.74rem; }
+.landing-reciter em { margin-top: 4px; font-style: normal; font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--l-gold-soft); }
+
+.landing-more { margin: 28px auto 0; width: 100%; max-width: 420px; }
+
+.landing-footer {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 36px 20px calc(36px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  background: var(--l-navy-950);
+  text-align: center;
+}
+.landing-footer small { color: #6f7a97; }
+.landing-link { padding: 8px 12px; color: var(--l-gold-soft); background: none; border: 0; text-decoration: underline; }
+
+@media (min-width: 640px) {
+  .landing-cta { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); max-width: 680px; }
+  .landing-stats { grid-template-columns: repeat(4, 1fr); }
+  .landing-surah-grid, .landing-reciter-grid { grid-template-columns: repeat(2, 1fr); }
+  .landing-feature-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 960px) {
+  .landing-surah-grid { grid-template-columns: repeat(3, 1fr); }
+  .landing-feature-grid { grid-template-columns: repeat(4, 1fr); }
+  .landing-reciter-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .landing * { transition: none !important; } }
+
+.landing-section, .landing-hero { scroll-margin-top: 72px; }
