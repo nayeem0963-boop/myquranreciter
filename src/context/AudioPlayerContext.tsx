@@ -106,6 +106,12 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
   const prefetchRef = useRef<HTMLAudioElement | null>(null);
+  const blobCacheRef = useRef<Map<string, string>>(new Map());
+  const blobPendingRef = useRef<Set<string>>(new Set());
+  const blobFailedRef = useRef<Set<string>>(new Set());
+  const stuckTicksRef = useRef(0);
+  const lastTimeRef = useRef(-1);
+  const recoveriesRef = useRef(0);
   const MAX_PLAY_RETRIES = 4;
   const currentReciter = reciters.find((reciter) => reciter.id === state.currentReciterId) ?? reciters[0];
   const currentSurah = surahs.find((surah) => surah.number === state.surahId);
@@ -200,6 +206,15 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     return () => controller.abort();
   }, [state.surahId]);
 
+  // Point the element at a verse. Prefers the in-memory copy (no network needed between verses).
+  // `dataset.track` records the logical URL because audio.src may be a blob: URL.
+  const setTrack = useCallback((audio: HTMLAudioElement, url: string, forceNetwork = false): boolean => {
+    if (!forceNetwork && audio.dataset.track === url) return false;
+    audio.dataset.track = url;
+    audio.src = forceNetwork ? url : blobCacheRef.current.get(url) ?? url;
+    return true;
+  }, []);
+
   const clearRetry = useCallback(() => {
     if (retryTimerRef.current !== null) {
       clearTimeout(retryTimerRef.current);
@@ -245,20 +260,51 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
   // element keeps it "active" so mobile browsers still allow playback with the screen locked.
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
-    if (!trackUrl) return;
-    if (audio.src !== trackUrl) {
-      audio.src = trackUrl;
+    if (!audio || !trackUrl) return;
+    setTrack(audio, trackUrl);
+
+    // Download the next few verses into memory so transitions (and a locked, network-throttled
+    // phone) never depend on a fresh request. If the host blocks fetch (CORS), fall back to
+    // warming the HTTP cache through a hidden audio element.
+    const wanted: string[] = [];
+    for (let offset = 1; offset <= 3; offset += 1) {
+      const verse = versesWithWords[state.ayahIndex + offset];
+      if (verse) wanted.push(getVerseAudioUrl(currentReciter, state.surahId, verse.numberInSurah));
     }
-    // Warm the cache with the next verse so the transition does not depend on the network.
-    const nextVerse = versesWithWords[state.ayahIndex + 1];
-    if (nextVerse) {
-      const prefetch = prefetchRef.current ?? new Audio();
-      prefetch.preload = "auto";
-      prefetch.src = getVerseAudioUrl(currentReciter, state.surahId, nextVerse.numberInSurah);
-      prefetchRef.current = prefetch;
+    const keep = new Set([trackUrl, ...wanted]);
+    for (const [url, objectUrl] of blobCacheRef.current) {
+      if (!keep.has(url)) {
+        URL.revokeObjectURL(objectUrl);
+        blobCacheRef.current.delete(url);
+      }
     }
-  }, [trackUrl, state.ayahIndex, state.surahId, currentReciter, versesWithWords]);
+    for (const url of wanted) {
+      if (blobCacheRef.current.has(url) || blobPendingRef.current.has(url)) continue;
+      if (blobFailedRef.current.has(url)) continue;
+      blobPendingRef.current.add(url);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      fetch(url, { signal: controller.signal })
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.blob();
+        })
+        .then((blob) => {
+          blobCacheRef.current.set(url, URL.createObjectURL(blob));
+        })
+        .catch(() => {
+          blobFailedRef.current.add(url);
+          const prefetch = prefetchRef.current ?? new Audio();
+          prefetch.preload = "auto";
+          prefetch.src = url;
+          prefetchRef.current = prefetch;
+        })
+        .finally(() => {
+          clearTimeout(timeout);
+          blobPendingRef.current.delete(url);
+        });
+    }
+  }, [trackUrl, state.ayahIndex, state.surahId, currentReciter, versesWithWords, setTrack]);
 
   useEffect(() => () => {
     const audio = audioRef.current;
@@ -277,14 +323,14 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     const audio = audioRef.current;
     if (!audio) return;
     if (state.isPlaying && trackUrl) {
-      if (audio.src !== trackUrl) audio.src = trackUrl;
+      setTrack(audio, trackUrl);
       if (audio.paused || audio.ended) startPlayback();
     } else {
       clearRetry();
       retryCountRef.current = 0;
       audio.pause();
     }
-  }, [trackUrl, state.isPlaying, startPlayback, clearRetry]);
+  }, [trackUrl, state.isPlaying, startPlayback, clearRetry, setTrack]);
 
   const switchToSurah = useCallback((surahId: number, ayahIndex: number, shouldPlay: boolean) => {
     clearPendingPause();
@@ -386,14 +432,14 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
       // Start the next verse synchronously inside the `ended` event: the most reliable way to
       // keep playing in the background / with the screen locked.
       clearPendingPause();
-      audio.src = getVerseAudioUrl(currentReciter, state.surahId, nextAyah.numberInSurah);
+      setTrack(audio, getVerseAudioUrl(currentReciter, state.surahId, nextAyah.numberInSurah));
       startPlayback();
       setState((current) => ({ ...current, ayahIndex: current.ayahIndex + 1, currentTime: 0, duration: 0 }));
       return;
     }
     scheduleTransition(() => moveVerse(1));
   }, [
-    currentReciter, startPlayback, versesWithWords,
+    currentReciter, startPlayback, versesWithWords, setTrack,
     clearPendingPause, moveVerse, reportDataNotice, state.abEndIndex, state.abLoopEnabled, state.ayahIndex,
     state.recitationPauseSeconds, state.repeatMode, state.surahId, switchToSurah, verses.length,
   ]);
@@ -486,6 +532,48 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     moveVerse(-1);
   }, [clearPendingPause, moveVerse]);
 
+  // Watchdog: a play() that never settles (stalled/throttled network while locked) raises no
+  // error, so notice when audio is not advancing and reload it from the network.
+  useEffect(() => {
+    if (!state.isPlaying || !trackUrl) return;
+    stuckTicksRef.current = 0;
+    lastTimeRef.current = -1;
+    const check = () => {
+      const audio = audioRef.current;
+      if (!audio || pauseTimerRef.current !== null) return;
+      const advancing = !audio.paused && audio.currentTime !== lastTimeRef.current;
+      lastTimeRef.current = audio.currentTime;
+      if (advancing || audio.ended) {
+        stuckTicksRef.current = 0;
+        recoveriesRef.current = 0;
+        return;
+      }
+      stuckTicksRef.current += 1;
+      if (stuckTicksRef.current < 3) return;
+      stuckTicksRef.current = 0;
+      if (recoveriesRef.current >= 8) {
+        recoveriesRef.current = 0;
+        setState((current) => ({ ...current, isPlaying: false }));
+        reportDataNotice("Audio stalled. Check your connection and press play.");
+        return;
+      }
+      recoveriesRef.current += 1;
+      const resumeAt = audio.currentTime;
+      setTrack(audio, trackUrl, true);
+      if (resumeAt > 0) audio.currentTime = resumeAt;
+      startPlayback();
+    };
+    const interval = setInterval(check, 2000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") check();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [state.isPlaying, trackUrl, startPlayback, setTrack, reportDataNotice]);
+
   useEffect(() => {
     if (!("mediaSession" in navigator)) return;
     const title = currentSurah
@@ -563,7 +651,19 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
           setDataNotice((n) => (n.startsWith("Connection hiccup") ? "" : n));
         }}
         onError={() => {
-          if (state.isPlaying && trackUrl) startPlayback();
+          const audio = audioRef.current;
+          if (!audio || !state.isPlaying || !trackUrl || retryTimerRef.current !== null) return;
+          if (retryCountRef.current >= MAX_PLAY_RETRIES) return;
+          // Back off instead of reloading immediately, so a dead network cannot cause a tight loop.
+          const delay = 700 * 2 ** retryCountRef.current;
+          retryCountRef.current += 1;
+          retryTimerRef.current = setTimeout(() => {
+            retryTimerRef.current = null;
+            const current = audioRef.current;
+            if (!current) return;
+            setTrack(current, trackUrl, true);
+            startPlayback();
+          }, delay);
         }}
         onPlay={() => setState((current) => ({ ...current, isPlaying: true }))}
       />
