@@ -1,5 +1,5 @@
 import { getSampleVerses, RECITERS, SAMPLE_SURAHS } from "./sampleData";
-import type { Ayah, QuranWord, Reciter, Surah, Tafsir } from "../types";
+import type { Ayah, QuranWord, Reciter, Surah, SurahAudio, Tafsir } from "../types";
 
 const API_BASE = "https://api.alquran.cloud/v1";
 const QURAN_COM_API_BASE = "https://api.quran.com/api/v4";
@@ -232,4 +232,52 @@ export function getVerseAudioUrl(reciter: Reciter, surahNumber: number, ayahNumb
   const surah = String(surahNumber).padStart(3, "0");
   const ayah = String(ayahNumber).padStart(3, "0");
   return `https://everyayah.com/data/${reciter.audioDirectory}/${surah}${ayah}.mp3`;
+}
+
+interface ChapterRecitationResponse {
+  audio_file?: {
+    audio_url?: string;
+    timestamps?: Array<{ verse_key?: string; timestamp_from?: number; timestamp_to?: number }>;
+  };
+}
+
+/**
+ * One continuous recording per surah plus per-verse timestamps. Playing a single file lets the
+ * phone keep reciting with the screen locked (no JavaScript needed between verses).
+ * Returns null when unavailable or inconsistent, so callers fall back to per-verse audio.
+ */
+export async function fetchSurahAudio(
+  reciter: Reciter,
+  surahNumber: number,
+  verseCount: number,
+  signal?: AbortSignal,
+): Promise<SurahAudio | null> {
+  if (!reciter.quranComRecitationId || verseCount <= 0) return null;
+  try {
+    const response = await fetch(
+      `${QURAN_COM_API_BASE}/chapter_recitations/${reciter.quranComRecitationId}/${surahNumber}?segments=true`,
+      { signal },
+    );
+    if (!response.ok) return null;
+    const payload = (await response.json()) as ChapterRecitationResponse;
+    const file = payload.audio_file;
+    if (!file?.audio_url || !file.timestamps) return null;
+    const url = file.audio_url.startsWith("http")
+      ? file.audio_url
+      : `https://download.quranicaudio.com/${file.audio_url.replace(/^\/+/, "")}`;
+    const startsMs: number[] = new Array(verseCount).fill(-1);
+    const endsMs: number[] = new Array(verseCount).fill(-1);
+    for (const stamp of file.timestamps) {
+      const [chapter, verse] = (stamp.verse_key ?? "").split(":").map(Number);
+      if (chapter !== surahNumber || !Number.isInteger(verse) || verse < 1 || verse > verseCount) continue;
+      if (typeof stamp.timestamp_from !== "number" || typeof stamp.timestamp_to !== "number") continue;
+      startsMs[verse - 1] = stamp.timestamp_from;
+      endsMs[verse - 1] = stamp.timestamp_to;
+    }
+    const valid = startsMs.every((value, index) => value >= 0 && endsMs[index] > value && (index === 0 || value >= startsMs[index - 1]));
+    if (!valid) return null;
+    return { surahId: surahNumber, reciterId: reciter.id, url, startsMs, endsMs };
+  } catch {
+    return null;
+  }
 }

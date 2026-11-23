@@ -8,9 +8,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Ayah, PlaybackState, QuranWord, Reciter, Surah } from "../types";
+import type { Ayah, PlaybackState, QuranWord, Reciter, Surah, SurahAudio } from "../types";
 import { getSampleVerses } from "../services/sampleData";
-import { fetchVerses, fetchWordsBySurah, getReciters, getVerseAudioUrl } from "../services/quranApi";
+import { fetchSurahAudio, fetchVerses, fetchWordsBySurah, getReciters, getVerseAudioUrl } from "../services/quranApi";
 
 interface AudioPlayerValue {
   state: PlaybackState;
@@ -97,6 +97,7 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
   const [wordsByVerse, setWordsByVerse] = useState<Record<number, QuranWord[]>>({});
   const [isLoadingVerses, setIsLoadingVerses] = useState(true);
   const [isLoadingWords, setIsLoadingWords] = useState(true);
+  const [surahAudio, setSurahAudio] = useState<SurahAudio | null>(null);
   const [loadedSurahId, setLoadedSurahId] = useState(state.surahId);
   const [dataNotice, setDataNotice] = useState("");
   const [wordDataNotice, setWordDataNotice] = useState("");
@@ -109,6 +110,8 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
   const blobCacheRef = useRef<Map<string, string>>(new Map());
   const blobPendingRef = useRef<Set<string>>(new Set());
   const blobFailedRef = useRef<Set<string>>(new Set());
+  const pendingSeekRef = useRef<number | null>(null);
+  const timeDrivenIndexRef = useRef(-1);
   const stuckTicksRef = useRef(0);
   const lastTimeRef = useRef(-1);
   const recoveriesRef = useRef(0);
@@ -120,9 +123,17 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     words: wordsByVerse[verse.numberInSurah] ?? [],
   })), [verses, wordsByVerse]);
   const activeVerse = versesWithWords[state.ayahIndex];
-  const trackUrl = loadedSurahId === state.surahId && activeVerse
-    ? getVerseAudioUrl(currentReciter, state.surahId, activeVerse.numberInSurah)
-    : "";
+  const surahAudioReady = surahAudio !== null && surahAudio.surahId === state.surahId &&
+    surahAudio.reciterId === state.currentReciterId ? surahAudio : null;
+  // One continuous file per surah keeps playing with the screen locked. Features that must act at
+  // verse boundaries (pause between verses, verse repeat, A-B loop) use per-verse files instead.
+  const surahMode = surahAudioReady !== null && loadedSurahId === state.surahId &&
+    state.recitationPauseSeconds === 0 && state.repeatMode !== "verse" && !state.abLoopEnabled;
+  const trackUrl = surahMode && surahAudioReady
+    ? surahAudioReady.url
+    : loadedSurahId === state.surahId && activeVerse
+      ? getVerseAudioUrl(currentReciter, state.surahId, activeVerse.numberInSurah)
+      : "";
 
   useEffect(() => {
     try {
@@ -258,10 +269,21 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
 
   // Source management. The element is never reset between verses: replacing `src` on the same
   // element keeps it "active" so mobile browsers still allow playback with the screen locked.
+  const surahVerseCount = currentSurah?.numberOfAyahs ?? 0;
+  useEffect(() => {
+    const controller = new AbortController();
+    setSurahAudio(null);
+    fetchSurahAudio(currentReciter, state.surahId, surahVerseCount, controller.signal).then((result) => {
+      if (!controller.signal.aborted) setSurahAudio(result);
+    });
+    return () => controller.abort();
+  }, [currentReciter, state.surahId, surahVerseCount]);
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !trackUrl) return;
-    setTrack(audio, trackUrl);
+    if (setTrack(audio, trackUrl) && surahMode) timeDrivenIndexRef.current = -1;
+    if (surahMode) return;
 
     // Download the next few verses into memory so transitions (and a locked, network-throttled
     // phone) never depend on a fresh request. If the host blocks fetch (CORS), fall back to
@@ -304,7 +326,19 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
           blobPendingRef.current.delete(url);
         });
     }
-  }, [trackUrl, state.ayahIndex, state.surahId, currentReciter, versesWithWords, setTrack]);
+  }, [trackUrl, state.ayahIndex, state.surahId, currentReciter, versesWithWords, setTrack, surahMode]);
+
+  // In surah mode, a verse change that did not come from the playing audio (tap, next/previous)
+  // moves the playhead to that verse's start inside the single file.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !surahMode || !surahAudioReady || audio.dataset.track !== trackUrl) return;
+    if (state.ayahIndex === timeDrivenIndexRef.current) return;
+    timeDrivenIndexRef.current = state.ayahIndex;
+    const target = (surahAudioReady.startsMs[state.ayahIndex] ?? 0) / 1000;
+    if (audio.readyState >= 1) audio.currentTime = target;
+    else pendingSeekRef.current = target;
+  }, [state.ayahIndex, surahMode, surahAudioReady, trackUrl]);
 
   useEffect(() => () => {
     const audio = audioRef.current;
@@ -398,6 +432,18 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
       }, state.recitationPauseSeconds * 1000);
     };
 
+    if (surahMode) {
+      const audio = audioRef.current;
+      if (state.repeatMode === "surah" && audio) {
+        audio.currentTime = 0;
+        timeDrivenIndexRef.current = 0;
+        setState((current) => ({ ...current, ayahIndex: 0, currentTime: 0 }));
+        startPlayback();
+        return;
+      }
+      moveVerse(1); // end of surah: continue with the next one, or stop after the last
+      return;
+    }
     const abEndIndex = state.abEndIndex < 0 ? verses.length - 1 : state.abEndIndex;
     if (state.abLoopEnabled && state.ayahIndex >= abEndIndex) {
       scheduleTransition(() => {
@@ -439,7 +485,7 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
     }
     scheduleTransition(() => moveVerse(1));
   }, [
-    currentReciter, startPlayback, versesWithWords, setTrack,
+    currentReciter, startPlayback, versesWithWords, setTrack, surahMode,
     clearPendingPause, moveVerse, reportDataNotice, state.abEndIndex, state.abLoopEnabled, state.ayahIndex,
     state.recitationPauseSeconds, state.repeatMode, state.surahId, switchToSurah, verses.length,
   ]);
@@ -457,8 +503,11 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
 
   const seek = useCallback((time: number) => {
     const audio = audioRef.current;
-    if (audio && Number.isFinite(time)) audio.currentTime = time;
-  }, []);
+    if (!audio || !Number.isFinite(time)) return;
+    audio.currentTime = surahMode && surahAudioReady
+      ? ((surahAudioReady.startsMs[state.ayahIndex] ?? 0) / 1000) + time
+      : time;
+  }, [surahMode, surahAudioReady, state.ayahIndex]);
 
   const setPlaybackRate = useCallback((rate: number) => {
     setState((current) => ({ ...current, playbackRate: rate }));
@@ -633,17 +682,40 @@ export function AudioPlayerProvider({ children, surahs, onDataNotice }: AudioPla
         onTimeUpdate={() => {
           const audio = audioRef.current;
           if (!audio || !Number.isFinite(audio.currentTime)) return;
+          if (surahMode && surahAudioReady) {
+            if (pendingSeekRef.current !== null || audio.dataset.track !== trackUrl) return;
+            const ms = audio.currentTime * 1000;
+            let index = 0;
+            while (index + 1 < surahAudioReady.startsMs.length && surahAudioReady.startsMs[index + 1] <= ms) index += 1;
+            timeDrivenIndexRef.current = index;
+            const start = surahAudioReady.startsMs[index];
+            const end = surahAudioReady.endsMs[index];
+            setState((current) => ({
+              ...current,
+              ayahIndex: index,
+              currentTime: Math.max(0, (ms - start) / 1000),
+              duration: Math.max(0, (end - start) / 1000),
+            }));
+            return;
+          }
           const currentTime = audio.currentTime;
           setState((current) => ({ ...current, currentTime }));
         }}
         onDurationChange={() => {
           const audio = audioRef.current;
-          if (!audio) return;
+          if (!audio || surahMode) return;
           const duration = audio.duration;
           setState((current) => ({
             ...current,
             duration: Number.isFinite(duration) && duration >= 0 ? duration : 0,
           }));
+        }}
+        onLoadedMetadata={() => {
+          const audio = audioRef.current;
+          if (audio && pendingSeekRef.current !== null) {
+            audio.currentTime = pendingSeekRef.current;
+            pendingSeekRef.current = null;
+          }
         }}
         onEnded={onEnded}
         onPlaying={() => {

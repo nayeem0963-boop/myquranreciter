@@ -69,9 +69,9 @@ export const SAMPLE_VERSES: Record<number, Ayah[]> = {
 };
 
 export const RECITERS: Reciter[] = [
-  { id: "alafasy", name: "Mishary Rashid Alafasy", country: "Kuwait", audioDirectory: "Alafasy_128kbps" },
-  { id: "husary", name: "Mahmoud Khalil Al-Husary", country: "Egypt", audioDirectory: "Husary_128kbps" },
-  { id: "abdulbasit", name: "Abdul Basit Abdul Samad", country: "Egypt", audioDirectory: "Abdul_Basit_Murattal_192kbps" },
+  { id: "alafasy", name: "Mishary Rashid Alafasy", country: "Kuwait", audioDirectory: "Alafasy_128kbps", quranComRecitationId: 7 },
+  { id: "husary", name: "Mahmoud Khalil Al-Husary", country: "Egypt", audioDirectory: "Husary_128kbps", quranComRecitationId: 6 },
+  { id: "abdulbasit", name: "Abdul Basit Abdul Samad", country: "Egypt", audioDirectory: "Abdul_Basit_Murattal_192kbps", quranComRecitationId: 2 },
 ];
 
 export function getSampleVerses(surahId: number): Ayah[] {
