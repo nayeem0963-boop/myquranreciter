@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AudioPlayerBar from "./components/AudioPlayerBar";
 import BottomNav from "./components/BottomNav";
+import HomeWelcome from "./components/HomeWelcome";
 import DisplaySettingsSheet from "./components/DisplaySettingsSheet";
 import QuranReader from "./components/QuranReader";
 import ReciterSelector from "./components/ReciterSelector";
@@ -85,17 +86,22 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const readingPreferences = useReadingPreferences();
   const { bookmarks, toggleBookmark, removeBookmark } = useBookmarks();
   const { isInstallable, isIOSSafari, isStandalone, install, installError } = usePWAInstall();
+  const [view, setView] = useState<"home" | "reader">("home");
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isDisplayOpen, setIsDisplayOpen] = useState(false);
   const displayToggleRef = useRef<HTMLElement | null>(null);
   const libraryReturnRef = useRef<HTMLElement | null>(null);
   const [libraryView, setLibraryView] = useState<LibraryView>("surahs");
-  const isDarkTheme = readingPreferences.theme === "dark";
 
+  const theme = readingPreferences.theme;
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", isDarkTheme ? "dark" : "light");
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isDarkTheme ? "#141b17" : "#f6f7f2");
-  }, [isDarkTheme]);
+    const root = document.documentElement;
+    root.setAttribute("data-theme", theme);
+    root.classList.remove("theme-dark", "theme-light", "theme-warm");
+    root.classList.add(`theme-${theme}`);
+    const color = theme === "dark" ? "#070d1f" : theme === "light" ? "#f8f9fa" : "#f4ecd8";
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", color);
+  }, [theme]);
 
   const closeDisplay = useCallback(() => setIsDisplayOpen(false), []);
   const [showIOSInstallHelp, setShowIOSInstallHelp] = useState(false);
@@ -142,7 +148,15 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
     setIsDisplayOpen(true);
   }, []);
 
+  const goHome = useCallback(() => {
+    setIsLibraryOpen(false);
+    setIsDisplayOpen(false);
+    setView("home");
+    window.scrollTo({ top: 0 });
+  }, []);
+
   const goToReading = useCallback(() => {
+    setView("reader");
     setIsLibraryOpen(false);
     setIsDisplayOpen(false);
     const active = document.querySelector<HTMLElement>(".verse-card-row.active");
@@ -156,6 +170,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   }, []);
 
   const selectBookmark = useCallback((bookmark: Bookmark) => {
+    setView("reader");
     playVerse(bookmark.surahId, bookmark.verseNumber - 1);
     closeLibrary();
   }, [closeLibrary, playVerse]);
@@ -174,6 +189,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   }, [install, isInstallable]);
 
   const handleSelectSurah = useCallback((surahId: number) => {
+    setView("reader");
     selectSurah(surahId);
     closeLibrary();
   }, [closeLibrary, selectSurah]);
@@ -232,7 +248,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
 
   return (
     <div className="app-shell" dir="ltr">
-      <header className="site-header">
+      <header className="site-header" hidden={view === "home"}>
         <button
           className="mobile-library-toggle"
           type="button"
@@ -244,7 +260,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             else openLibrary("surahs", event.currentTarget);
           }}
         >☰</button>
-        <a className="brand" href="#" aria-label="My Quran Reciter home">
+        <a className="brand" href="#" aria-label="My Quran Reciter home" onClick={(e) => { e.preventDefault(); goHome(); }}>
           <span className="brand-mark" aria-hidden="true">۞</span>
           <span>my<span className="brand-accent">quran</span>reciter</span>
         </a>
@@ -313,7 +329,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
         </div>
       )}
 
-      {showResumeBanner && resumePosition && (
+      {view === "reader" && showResumeBanner && resumePosition && (
         <div className="resume-banner" role="status">
           <span>
             Pick up where you left off: <strong>{surahs.find((surah) => surah.number === resumePosition.surahId)?.nameTransliteration ?? `Surah ${resumePosition.surahId}`}</strong>
@@ -336,7 +352,30 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
         </div>
       )}
 
-      <main className="workspace">
+      {view === "home" && (
+        <HomeWelcome
+          surahs={surahs}
+          resume={resumePosition}
+          showInstall={!isStandalone && (isInstallable || isIOSSafari)}
+          onInstall={() => void handleInstallClick()}
+          onResume={() => {
+            if (!resumePosition) return;
+            setView("reader");
+            setShowResumeBanner(false);
+            playVerse(resumePosition.surahId, resumePosition.ayahIndex);
+          }}
+          onOpenSurah={handleSelectSurah}
+          onPlaySurah={(id) => { setView("reader"); playSurah(id); }}
+          onListen={() => {
+            setView("reader");
+            if (resumePosition) playVerse(resumePosition.surahId, resumePosition.ayahIndex);
+            else playSurah(state.surahId);
+          }}
+          onRead={goToReading}
+        />
+      )}
+
+      <main className="workspace" hidden={view === "home" && !isLibraryOpen}>
         <SurahList
           surahs={surahs}
           selectedSurahId={state.surahId}
@@ -356,6 +395,10 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             </p>
           )}
           {isLoadingSurahs && <p className="sr-only" role="status">Loading Surah list…</p>}
+          <div className="reader-toggles" role="group" aria-label="Reading options">
+            <button type="button" aria-pressed={readingPreferences.showTranslation} onClick={readingPreferences.toggleTranslation}>Translation</button>
+            <button type="button" aria-pressed={readingPreferences.showTransliteration} onClick={readingPreferences.toggleTransliteration}>Transliteration</button>
+          </div>
           <QuranReader
             surah={currentSurah}
             verses={verses}
@@ -373,6 +416,14 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             isLoadingWords={isLoadingWords}
             wordDataNotice={wordDataNotice}
           />
+          <nav className="surah-pager" aria-label="Surah navigation">
+            <button type="button" disabled={state.surahId <= 1} onClick={() => { selectSurah(state.surahId - 1); window.scrollTo({ top: 0 }); }}>
+              ‹ Previous Surah
+            </button>
+            <button type="button" disabled={state.surahId >= surahs.length} onClick={() => { selectSurah(state.surahId + 1); window.scrollTo({ top: 0 }); }}>
+              Next Surah ›
+            </button>
+          </nav>
         </div>
       </main>
 
@@ -391,8 +442,9 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
       />
       <AudioPlayerBar />
       <BottomNav
-        active={isDisplayOpen ? "settings" : isLibraryOpen ? (libraryView === "bookmarks" ? "bookmarks" : "library") : "read"}
+        active={isDisplayOpen ? "settings" : view === "home" && !isLibraryOpen ? "home" : isLibraryOpen ? (libraryView === "bookmarks" ? "bookmarks" : "library") : "read"}
         bookmarkCount={bookmarks.length}
+        onHome={goHome}
         onRead={goToReading}
         onLibrary={(trigger) => openLibrary("surahs", trigger)}
         onBookmarks={(trigger) => openLibrary("bookmarks", trigger)}

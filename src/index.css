@@ -3508,3 +3508,394 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+[hidden]{display:none!important}
+
+/* ==========================================================================
+   Centralized theme variables: dark (default), light, warm
+   ========================================================================== */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #070d1f;
+  --bg-glow: #0f1d3d;
+  --surface: #0f1d3d;
+  --surface-2: #0b1530;
+  --surface-glass: rgba(11, 21, 48, 0.9);
+  --text-primary: #f4f6fb;
+  --text-secondary: #94a3b8;
+  --text-arabic: #f5d77f;
+  --accent: #d4af37;
+  --accent-text: #f5d77f;
+  --accent-soft: rgba(212, 175, 55, 0.14);
+  --border: rgba(212, 175, 55, 0.32);
+  --on-accent: #070d1f;
+  --control-fill: rgba(255, 255, 255, 0.16);
+  --row-active: rgba(96, 130, 220, 0.14);
+  --glow: 0 0 14px rgba(212, 175, 55, 0.35);
+  --backdrop: rgba(3, 6, 15, 0.6);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f8f9fa;
+  --bg-glow: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f1f3f5;
+  --surface-glass: rgba(255, 255, 255, 0.94);
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-arabic: #1b4332;
+  --accent: #c59b27;
+  --accent-text: #8a6d1b;
+  --accent-soft: rgba(197, 155, 39, 0.14);
+  --border: rgba(197, 155, 39, 0.5);
+  --on-accent: #1e293b;
+  --control-fill: rgba(30, 41, 59, 0.14);
+  --row-active: rgba(197, 155, 39, 0.12);
+  --glow: 0 0 12px rgba(197, 155, 39, 0.3);
+  --backdrop: rgba(30, 41, 59, 0.35);
+}
+:root[data-theme="warm"] {
+  color-scheme: light;
+  --bg: #f4ecd8;
+  --bg-glow: #f4ecd8;
+  --surface: #ede4ce;
+  --surface-2: #e6dbc0;
+  --surface-glass: rgba(237, 228, 206, 0.95);
+  --text-primary: #2c221e;
+  --text-secondary: #6d594b;
+  --text-arabic: #3e2723;
+  --accent: #b8860b;
+  --accent-text: #7a5410;
+  --accent-soft: rgba(184, 134, 11, 0.15);
+  --border: rgba(184, 134, 11, 0.45);
+  --on-accent: #2c221e;
+  --control-fill: rgba(44, 34, 30, 0.16);
+  --row-active: rgba(184, 134, 11, 0.14);
+  --glow: 0 0 12px rgba(184, 134, 11, 0.3);
+  --backdrop: rgba(44, 34, 30, 0.4);
+}
+/* Aliases used by the home page and legacy rules */
+:root {
+  --gold: var(--accent);
+  --gold-light: var(--accent-text);
+  --gold-line: var(--border);
+  --gold-glow: var(--glow);
+  --ivory: var(--text-primary);
+  --ivory-dim: var(--text-secondary);
+  --green: var(--accent);
+  --green-dark: var(--accent-text);
+  --green-deep: var(--accent);
+  --mint: var(--accent-soft);
+  --muted: var(--text-secondary);
+  --line: var(--border);
+  --panel: var(--surface);
+}
+[hidden] { display: none !important; }
+
+html:root:root,
+html:root:root body {
+  color: var(--text-primary);
+  background: var(--bg);
+}
+html:root:root body { background: radial-gradient(circle at 50% -10%, var(--bg-glow) 0%, var(--bg) 65%) fixed; }
+
+/* Smooth theme switching across the whole app */
+html:root:root body,
+html:root:root .app-shell,
+html:root:root .site-header,
+html:root:root .panel,
+html:root:root .surah-panel,
+html:root:root .sheet-panel,
+html:root:root .player-bar,
+html:root:root .bottom-nav,
+html:root:root .surah-row,
+html:root:root .verse-card-row,
+html:root:root .home-card,
+html:root:root .home-entry,
+html:root:root .home-section-bar,
+html:root:root .reader-panel,
+html:root:root .surah-cover,
+html:root:root .tafsir-drawer,
+html:root:root button,
+html:root:root input {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Surfaces */
+html:root:root .app-shell { background: transparent; }
+html:root:root .site-header,
+html:root:root .panel,
+html:root:root .surah-panel,
+html:root:root .sheet-panel,
+html:root:root .bookmark-row,
+html:root:root .install-help-dialog,
+html:root:root .resume-banner,
+html:root:root .data-notice,
+html:root:root .tafsir-drawer,
+html:root:root .tafsir-panel {
+  background: var(--surface-glass);
+  border-color: var(--border);
+  color: var(--text-primary);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+html:root:root .site-header { border-bottom: 1px solid var(--border); }
+html:root:root .sheet-backdrop,
+html:root:root .install-help-backdrop { background: var(--backdrop); }
+html:root:root .brand,
+html:root:root .brand-accent,
+html:root:root .brand-mark,
+html:root:root .panel-heading h2,
+html:root:root .surah-title,
+html:root:root .bookmark-content strong,
+html:root:root .sheet-header h2,
+html:root:root .sheet-header h3,
+html:root:root .eyebrow { color: var(--accent-text); }
+html:root:root .header-caption,
+html:root:root .surah-meta,
+html:root:root .bookmark-content span,
+html:root:root .keyboard-hint,
+html:root:root .library-note,
+html:root:root .empty-state,
+html:root:root .sheet-body,
+html:root:root .sheet-body label,
+html:root:root .switch-row,
+html:root:root .translation-search-notice { color: var(--text-secondary); }
+html:root:root .sheet-body strong,
+html:root:root .switch-row strong { color: var(--text-primary); }
+html:root:root .keyboard-hint kbd { background: var(--surface); color: var(--text-primary); border-color: var(--border); }
+
+/* Surah list (library drawer) */
+html:root:root .surah-row { background: transparent; border-color: var(--border); color: var(--text-primary); }
+html:root:root .surah-row:hover,
+html:root:root .surah-row.selected { background: var(--row-active); box-shadow: inset 3px 0 0 var(--accent); }
+html:root:root .surah-number,
+html:root:root .surah-row.selected .surah-number {
+  color: var(--accent-text); background: var(--surface-2); border: 1px solid var(--accent); box-shadow: none;
+}
+html:root:root .surah-arabic { color: var(--text-arabic); }
+html:root:root .search-field input,
+html:root:root .library-tabs,
+html:root:root .reciter-select,
+html:root:root select,
+html:root:root .segmented,
+html:root:root .segment {
+  background: var(--surface-2); color: var(--text-primary); border-color: var(--border);
+}
+html:root:root .library-tabs button { color: var(--text-secondary); background: transparent; }
+html:root:root .library-tabs button[aria-selected="true"],
+html:root:root .pill.active,
+html:root:root .pill-button.active,
+html:root:root .segment[aria-checked="true"] { background: var(--accent); color: var(--on-accent); }
+html:root:root .count-pill { background: var(--accent-soft); color: var(--accent-text); }
+html:root:root .search-icon { color: var(--accent-text); }
+
+/* Buttons */
+html:root:root .play-button,
+html:root:root .listen-surah-button,
+html:root:root .full-player-play,
+html:root:root .resume-action {
+  background: linear-gradient(135deg, var(--accent-text), var(--accent));
+  color: var(--on-accent); border: 0; box-shadow: var(--glow);
+}
+html:root:root .icon-button,
+html:root:root .pill-button,
+html:root:root .display-settings-button,
+html:root:root .install-app-button,
+html:root:root .mobile-library-toggle,
+html:root:root .mobile-options-toggle,
+html:root:root .sheet-close,
+html:root:root .drawer-close-button,
+html:root:root .full-player-skip,
+html:root:root .bookmark-remove {
+  background: transparent; color: var(--accent-text); border: 1px solid var(--border);
+}
+html:root:root .icon-button:hover,
+html:root:root .pill-button:hover,
+html:root:root .display-settings-button:hover { box-shadow: var(--glow); border-color: var(--accent); }
+html:root:root .switch-track { background: var(--control-fill); }
+html:root:root .switch-row[aria-checked="true"] .switch-track { background: var(--accent); }
+
+/* Mini player */
+html:root:root .player-bar {
+  background: var(--surface-glass);
+  border-top: 1px solid var(--accent);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.18);
+  color: var(--text-primary);
+}
+html:root:root .player-art { background: var(--accent-soft); color: var(--accent-text); border: 1px solid var(--border); }
+html:root:root .now-playing,
+html:root:root .now-playing-copy strong { color: var(--text-primary); }
+html:root:root .now-playing-copy span { color: var(--text-secondary); }
+html:root:root .progress-slider {
+  background: linear-gradient(to right, var(--accent) var(--progress), var(--control-fill) var(--progress));
+}
+html:root:root .progress-slider::-webkit-slider-thumb,
+html:root:root .volume-control input::-webkit-slider-thumb { background: var(--accent-text); }
+html:root:root .progress-slider::-moz-range-thumb { background: var(--accent-text); border: 0; }
+html:root:root .progress-row,
+html:root:root .volume-control { color: var(--text-secondary); }
+html:root:root .full-player-verse { color: var(--text-arabic); }
+html:root:root .full-player-translation,
+html:root:root .full-player-meta { color: var(--text-secondary); }
+
+/* Bottom navigation */
+@media (max-width: 767px) {
+  html:root:root .bottom-nav {
+    background: var(--surface-glass);
+    border-top: 1px solid var(--border);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    grid-template-columns: repeat(5, 1fr);
+    padding-left: 4px; padding-right: 4px;
+  }
+  html:root:root .bottom-nav-item { color: var(--text-secondary); }
+  html:root:root .bottom-nav-item.active { color: var(--accent-text); }
+  html:root:root .bottom-nav-item.active .bottom-nav-icon {
+    background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--border), var(--glow);
+  }
+  html:root:root .bottom-nav-icon { width: 46px; }
+  html:root:root .bottom-nav-badge { background: var(--accent); color: var(--on-accent); }
+  html:root:root .app-shell { padding-bottom: calc(var(--nav-h, 60px) + 120px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Reader: every element reads from theme variables */
+html:root:root .reader-panel,
+html:root:root .reader-panel.reading-theme-light,
+html:root:root .reader-panel.reading-theme-warm,
+html:root:root .reader-panel.reading-theme-dark {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+html:root:root .reader-panel .surah-cover {
+  background: radial-gradient(ellipse at 50% 0%, var(--accent-soft), transparent 62%), var(--surface);
+  border-color: var(--border);
+}
+html:root:root .reader-panel .cover-arabic,
+html:root:root .reader-panel .bismillah,
+html:root:root .reader-panel .verse-arabic,
+html:root:root .reader-panel .word-token { color: var(--text-arabic); }
+html:root:root .reader-panel .surah-cover h1 { color: var(--accent-text); }
+html:root:root .reader-panel .verse-arabic { line-height: 2.1; }
+html:root:root .reader-panel .cover-meaning,
+html:root:root .reader-panel .eyebrow,
+html:root:root .reader-panel .revelation-tag,
+html:root:root .reader-panel .word-gloss,
+html:root:root .reader-panel .verse-translation,
+html:root:root .reader-panel .loading-state { color: var(--text-secondary); }
+html:root:root .reader-panel .verse-translation { line-height: 1.65; }
+html:root:root .reader-panel .verse-transliteration { color: var(--accent-text); }
+html:root:root .reader-panel .revelation-tag { background: transparent; border-color: var(--border); }
+html:root:root .reader-panel .verse-card-row { border-color: var(--border); background: transparent; }
+html:root:root .reader-panel .verse-card-row:hover:not(.active),
+html:root:root .reader-panel .verse-card-row.active { background: var(--row-active); box-shadow: inset 3px 0 0 var(--accent); }
+html:root:root .reader-panel .verse-marker,
+html:root:root .reader-panel .verse-play,
+html:root:root .reader-panel .bookmark-toggle,
+html:root:root .reader-panel .tafsir-trigger {
+  background: transparent; color: var(--accent-text); border: 1px solid var(--border);
+}
+html:root:root .reader-panel .verse-marker { font-family: Georgia, serif; }
+html:root:root .reader-panel .verse-play,
+html:root:root .reader-panel .bookmark-toggle { border-radius: 50%; }
+html:root:root .reader-panel .bookmark-toggle.bookmarked,
+html:root:root .reader-panel .verse-play.playing { background: var(--accent); color: var(--on-accent); box-shadow: var(--glow); }
+html:root:root .reader-panel .word-token:hover,
+html:root:root .reader-panel .word-token[aria-expanded="true"] { background: var(--accent-soft); }
+html:root:root .reader-panel .skeleton { background: var(--control-fill); }
+
+/* Reader quick toggles + surah pager */
+.reader-toggles { display: flex; gap: 8px; margin: 0 0 12px; flex-wrap: wrap; }
+.reader-toggles button,
+.surah-pager button {
+  min-height: 40px; padding: 0 16px; border-radius: 9999px; font: inherit; cursor: pointer;
+  background: transparent; color: var(--accent-text); border: 1px solid var(--border);
+}
+.reader-toggles button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.surah-pager { display: flex; justify-content: space-between; gap: 12px; margin: 16px 0 8px; }
+.surah-pager button { flex: 1; }
+.surah-pager button:disabled { opacity: 0.35; cursor: default; }
+.surah-pager button:not(:disabled):hover { box-shadow: var(--glow); border-color: var(--accent); }
+
+/* Home landing page */
+.home-page { min-height: 100dvh; color: var(--text-primary); padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+.home-hero {
+  min-height: calc(100dvh - 230px); display: flex; flex-direction: column; gap: 18px; padding: 20px 20px 28px;
+  max-width: 640px; margin: 0 auto; text-align: center;
+  background: radial-gradient(ellipse at 50% 0%, var(--accent-soft), transparent 60%);
+}
+.home-topbar { display: flex; align-items: center; gap: 12px; text-align: left; }
+.home-logo {
+  flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  border: 1.5px solid var(--accent); color: var(--accent-text); font-size: 1.5rem; background: var(--accent-soft); box-shadow: var(--glow);
+}
+.home-title { flex: 1; min-width: 0; }
+.home-title h1 { margin: 0; font-family: Georgia, serif; font-size: 1.15rem; letter-spacing: 0.12em; color: var(--accent-text); }
+.home-title p { margin: 2px 0 0; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--accent-text); opacity: 0.8; }
+.home-icon-btn {
+  flex: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--border); background: transparent; color: var(--accent-text); font-size: 1.1rem;
+}
+.home-bismillah { margin: 18px 0 0; font-size: 2.1rem; color: var(--text-arabic); line-height: 1.8; }
+.home-lead { margin: 0; color: var(--text-secondary); }
+.home-search { display: flex; align-items: center; gap: 10px; padding: 0 16px; border-radius: 9999px; border: 1px solid var(--border); background: var(--surface-glass); color: var(--accent-text); }
+.home-search input { flex: 1; min-width: 0; min-height: 48px; border: 0; background: transparent; color: var(--text-primary); font: inherit; outline: none; }
+.home-entries { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.home-entry {
+  display: grid; justify-items: center; gap: 4px; padding: 18px 12px; border-radius: 20px; cursor: pointer; font: inherit;
+  color: var(--text-primary); border: 1px solid var(--border); background: linear-gradient(160deg, var(--surface), var(--surface-2));
+}
+.home-entry:hover, .home-entry:active { border-color: var(--accent); box-shadow: var(--glow); }
+.home-entry strong { color: var(--accent-text); font-size: 1.1rem; }
+.home-entry > span:last-child { font-size: 0.8rem; color: var(--text-secondary); }
+.home-entry-icon { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--accent-text); border: 1px solid var(--accent); }
+.home-resume { min-height: 48px; border-radius: 14px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent-text); font: inherit; cursor: pointer; }
+.home-featured { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.home-chip { padding: 8px 14px; border-radius: 9999px; border: 1px solid var(--border); background: var(--accent-soft); color: var(--accent-text); font: inherit; cursor: pointer; }
+.home-chip:hover { border-color: var(--accent); box-shadow: var(--glow); }
+.home-scroll-cue { margin-top: auto; background: transparent; border: 0; color: var(--accent-text); font: inherit; cursor: pointer; padding: 12px; letter-spacing: 0.08em; }
+
+.home-list-section { max-width: 640px; margin: 0 auto; border-top: 1px solid var(--accent); }
+.home-section-bar {
+  position: sticky; top: 0; z-index: 4; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  padding: 16px; background: var(--surface-glass); border-bottom: 1px solid var(--border); backdrop-filter: blur(10px);
+}
+.home-eyebrow { margin: 0; font-size: 0.68rem; letter-spacing: 0.25em; color: var(--accent-text); }
+.home-section-bar h2 { margin: 2px 0 0; font-family: Georgia, serif; color: var(--accent-text); }
+.home-view-toggle { display: flex; padding: 3px; border-radius: 9999px; border: 1px solid var(--border); background: var(--surface-2); }
+.home-view-toggle button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 9999px; background: transparent; color: var(--text-secondary); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.home-view-toggle button.active { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.home-cards { list-style: none; margin: 0; padding: 16px; display: grid; gap: 14px; }
+.home-card {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px;
+  padding: 18px 16px; border-radius: 22px; border: 1px solid var(--border);
+  background: linear-gradient(160deg, var(--surface), var(--surface-2)); cursor: pointer; color: inherit;
+}
+.home-card:hover, .home-card:focus-visible { border-color: var(--accent); box-shadow: var(--glow); outline: none; }
+.home-card-num {
+  width: 54px; height: 54px; border-radius: 14px; border: 1px solid var(--accent); display: grid; place-items: center;
+  color: var(--accent-text); font-family: Georgia, serif; font-weight: 700; background: var(--surface-2);
+}
+.home-card-main { min-width: 0; display: grid; gap: 4px; }
+.home-card-main strong { font-size: 1.05rem; overflow-wrap: anywhere; }
+.home-card-main > span { color: var(--text-secondary); font-size: 0.88rem; }
+.home-card-side { display: grid; justify-items: end; gap: 10px; }
+.home-card-ar { color: var(--text-arabic); font-size: 1.5rem; line-height: 1.4; }
+.home-play {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--accent); background: var(--accent-soft);
+  color: var(--accent-text); cursor: pointer; font-size: 0.85rem;
+}
+.home-play:hover, .home-play:active { box-shadow: var(--glow); }
+.home-empty { text-align: center; color: var(--text-secondary); padding: 24px; }
+
+/* Range slider + switch tracks follow the theme */
+html:root:root .range-input { accent-color: var(--accent); }
+html:root:root .range-input::-webkit-slider-runnable-track { background: var(--control-fill); border-radius: 4px; height: 4px; }
+html:root:root .range-input::-moz-range-track { background: var(--control-fill); border-radius: 4px; height: 4px; }
+html:root:root .size-slider-row { color: var(--accent-text); }
+html:root:root .range-input { appearance: none; -webkit-appearance: none; background: transparent; }
+html:root:root .range-input::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; margin-top: -8px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); box-shadow: var(--glow); }
+html:root:root .range-input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); }
