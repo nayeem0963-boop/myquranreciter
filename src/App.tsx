@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AudioPlayerBar from "./components/AudioPlayerBar";
 import BottomNav from "./components/BottomNav";
+import HomeWelcome from "./components/HomeWelcome";
 import DisplaySettingsSheet from "./components/DisplaySettingsSheet";
 import QuranReader from "./components/QuranReader";
 import ReciterSelector from "./components/ReciterSelector";
@@ -85,6 +86,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   const readingPreferences = useReadingPreferences();
   const { bookmarks, toggleBookmark, removeBookmark } = useBookmarks();
   const { isInstallable, isIOSSafari, isStandalone, install, installError } = usePWAInstall();
+  const [view, setView] = useState<"home" | "reader">("home");
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isDisplayOpen, setIsDisplayOpen] = useState(false);
   const displayToggleRef = useRef<HTMLElement | null>(null);
@@ -142,7 +144,15 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
     setIsDisplayOpen(true);
   }, []);
 
+  const goHome = useCallback(() => {
+    setIsLibraryOpen(false);
+    setIsDisplayOpen(false);
+    setView("home");
+    window.scrollTo({ top: 0 });
+  }, []);
+
   const goToReading = useCallback(() => {
+    setView("reader");
     setIsLibraryOpen(false);
     setIsDisplayOpen(false);
     const active = document.querySelector<HTMLElement>(".verse-card-row.active");
@@ -156,6 +166,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   }, []);
 
   const selectBookmark = useCallback((bookmark: Bookmark) => {
+    setView("reader");
     playVerse(bookmark.surahId, bookmark.verseNumber - 1);
     closeLibrary();
   }, [closeLibrary, playVerse]);
@@ -174,6 +185,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
   }, [install, isInstallable]);
 
   const handleSelectSurah = useCallback((surahId: number) => {
+    setView("reader");
     selectSurah(surahId);
     closeLibrary();
   }, [closeLibrary, selectSurah]);
@@ -244,7 +256,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
             else openLibrary("surahs", event.currentTarget);
           }}
         >☰</button>
-        <a className="brand" href="#" aria-label="My Quran Reciter home">
+        <a className="brand" href="#" aria-label="My Quran Reciter home" onClick={(e) => { e.preventDefault(); goHome(); }}>
           <span className="brand-mark" aria-hidden="true">۞</span>
           <span>my<span className="brand-accent">quran</span>reciter</span>
         </a>
@@ -313,7 +325,7 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
         </div>
       )}
 
-      {showResumeBanner && resumePosition && (
+      {view === "reader" && showResumeBanner && resumePosition && (
         <div className="resume-banner" role="status">
           <span>
             Pick up where you left off: <strong>{surahs.find((surah) => surah.number === resumePosition.surahId)?.nameTransliteration ?? `Surah ${resumePosition.surahId}`}</strong>
@@ -336,7 +348,25 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
         </div>
       )}
 
-      <main className="workspace">
+      {view === "home" && (
+        <HomeWelcome
+          surahs={surahs}
+          resume={resumePosition}
+          bookmarks={bookmarks}
+          onResume={() => {
+            if (!resumePosition) return;
+            setView("reader");
+            setShowResumeBanner(false);
+            playVerse(resumePosition.surahId, resumePosition.ayahIndex);
+          }}
+          onStartReading={goToReading}
+          onBrowse={(trigger) => openLibrary("surahs", trigger)}
+          onOpenBookmark={selectBookmark}
+          onSelectSurah={handleSelectSurah}
+        />
+      )}
+
+      <main className="workspace" hidden={view === "home" && !isLibraryOpen}>
         <SurahList
           surahs={surahs}
           selectedSurahId={state.surahId}
@@ -391,8 +421,9 @@ function AppContents({ dataNotice, isLoadingSurahs }: AppContentsProps) {
       />
       <AudioPlayerBar />
       <BottomNav
-        active={isDisplayOpen ? "settings" : isLibraryOpen ? (libraryView === "bookmarks" ? "bookmarks" : "library") : "read"}
+        active={isDisplayOpen ? "settings" : view === "home" && !isLibraryOpen ? "home" : isLibraryOpen ? (libraryView === "bookmarks" ? "bookmarks" : "library") : "read"}
         bookmarkCount={bookmarks.length}
+        onHome={goHome}
         onRead={goToReading}
         onLibrary={(trigger) => openLibrary("surahs", trigger)}
         onBookmarks={(trigger) => openLibrary("bookmarks", trigger)}

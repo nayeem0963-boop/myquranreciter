@@ -3508,3 +3508,25 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Home / welcome page */
+.home-welcome {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px calc(120px + env(safe-area-inset-bottom));
+  text-align: center;
+}
+.home-welcome h1 { margin: 4px 0 8px; font-size: 2rem; color: var(--green-dark); }
+.home-welcome h2 { font-size: 1rem; margin: 0 0 10px; text-align: left; }
+.home-bismillah { font-size: 2rem; margin: 8px 0; color: var(--green); }
+.home-lead { color: var(--muted); margin: 0 0 24px; }
+.home-actions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.home-actions button { min-height: var(--tap, 44px); border-radius: 9999px; padding: 0 20px; cursor: pointer; font: inherit; }
+.home-secondary { background: var(--panel); color: var(--green-dark); border: 1px solid var(--line); }
+.home-section { margin-top: 24px; }
+.home-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.home-list button { width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; color: inherit; font: inherit; cursor: pointer; display: grid; gap: 2px; }
+.home-list span { color: var(--muted); font-size: 0.85rem; }
+.home-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.home-chip { background: var(--mint); color: var(--green-dark); border: 0; border-radius: 9999px; padding: 8px 14px; font: inherit; cursor: pointer; }
+[hidden]{display:none!important}
